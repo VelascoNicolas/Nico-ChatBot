@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Option {
+  CAPTURE
+  MENU
+  READ
+}
+
+enum TypeMessage {
+  NUMBER
+  NAME
+  DEFAULT
+}
+
+model Profile {
+  id         String   @id @default(uuid())
+  deletedAt  DateTime @default(dbgenerated())
+  createdAt  DateTime @default(now())
+
+  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterpriseId String
+}
+
+model Client {
+  id         String   @id @default(uuid())
+  deletedAt  DateTime @default(dbgenerated())
+  createdAt  DateTime @default(now())
+
+  username String
+  phone    String
+
+  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterpriseId String
+}
+
+model Enterprise {
+  id         String   @id @default(uuid())
+  deletedAt  DateTime @default(dbgenerated())
+  createdAt  DateTime @default(now())
+
+  name String
+  phone    String
+  connected Boolean
+
+  profiles Profile[]
+
+  clients  Client[]
+
+  Message Message[]
+
+  pricingPlan PricingPlan  @relation(fields: [pricingPlanId], references: [id])
+  pricingPlanId String
+}
+
+model Flow {
+  id         String   @id @default(uuid())
+  deletedAt  DateTime @default(dbgenerated())
+  createdAt  DateTime @default(now())
+
+  name String
+  description String
+  isDeleted Boolean
+
+  Message Message[]
+
+  PricingPlan PricingPlan[]
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  deletedAt  DateTime @default(dbgenerated())
+  createdAt  DateTime @default(now())
+
+  numOrder Int
+  name String
+  body String
+  option Option
+  typeMessage TypeMessage
+  showName Boolean
+  isDeleted Boolean
+
+  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterpriseId String
+
+  flow Flow @relation(fields: [flowId], references: [id])
+  flowId String
+
+  parentMessage Message? @relation("ParentMessage", fields: [parentMessageId], references: [id])
+  parentMessageId String?
+
+  childMessages Message[] @relation("ParentMessage")
+}
+
+model PricingPlan {
+  id         String   @id @default(uuid())
+  deletedAt  DateTime? @default(dbgenerated())
+  createdAt  DateTime @default(now())
+
+  name String
+  description String
+  price Float
+  
+  enterprises Enterprise[]
+
+  flows Flow[]
+}
+
