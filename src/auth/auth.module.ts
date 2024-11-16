@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { envs } from 'src/config';
-import { ProfileService } from 'src/profile/profile.service';
+import { envs } from '../config';
+import { ProfileService } from '../profile/profile.service';
 
 @Module({
   imports: [
