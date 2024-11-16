@@ -6,7 +6,7 @@
   
         {
   
-            "src": "dist/main.js",
+            "src": "src/main.ts",
   
             "use": "@vercel/node"
   
