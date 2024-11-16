@@ -6,7 +6,7 @@
   
         {
   
-            "src": "src/main.ts",
+            "src": "dist/main.js",
   
             "use": "@vercel/node"
   
@@ -22,7 +22,7 @@
   
             "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   
-            "dest": "/src/main.ts"
+            "dest": "/dist/main.js"
   
         }
   
