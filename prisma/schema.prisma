@@ -13,6 +13,12 @@ enum Option {
   READ
 }
 
+enum Rol {
+  ADMIN
+  REDACTOR
+  EMPLEADO
+}
+
 enum TypeMessage {
   NUMBER
   NAME
@@ -21,94 +27,107 @@ enum TypeMessage {
 
 model Profile {
   id         String   @id @default(uuid())
-  deletedAt  DateTime @default(dbgenerated())
+  deletedAt  DateTime @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime @default(now())
+  available       Boolean @default(true)
+
+  email String  @unique
+  phone String
+  name String
+  password String
+
+  role Rol
 
   enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
   enterpriseId String
 }
 
 model Client {
-  id         String   @id @default(uuid())
-  deletedAt  DateTime @default(dbgenerated())
-  createdAt  DateTime @default(now())
+  id              String   @id @default(uuid())
+  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
+  createdAt       DateTime @default(now())
+  available       Boolean @default(true)
 
-  username String
-  phone    String
+  username        String
+  phone           String
 
-  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
-  enterpriseId String
+  enterprise      Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterpriseId    String
 }
 
 model Enterprise {
-  id         String   @id @default(uuid())
-  deletedAt  DateTime @default(dbgenerated())
-  createdAt  DateTime @default(now())
+  id              String   @id @default(uuid())
+  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
+  createdAt       DateTime @default(now())
+  available       Boolean @default(true)
 
-  name String
-  phone    String
-  connected Boolean
+  name            String
+  phone           String
+  connected       Boolean
 
-  profiles Profile[]
+  profiles        Profile[]
 
-  clients  Client[]
+  clients         Client[]
 
-  Message Message[]
+  Message         Message[]
 
-  pricingPlan PricingPlan  @relation(fields: [pricingPlanId], references: [id])
-  pricingPlanId String
+  pricingPlan     PricingPlan  @relation(fields: [pricingPlanId], references: [id])
+  pricingPlanId   String
 }
 
 model Flow {
-  id         String   @id @default(uuid())
-  deletedAt  DateTime @default(dbgenerated())
-  createdAt  DateTime @default(now())
+  id              String   @id @default(uuid())
+  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
+  createdAt       DateTime @default(now())
+  available       Boolean @default(true)
 
-  name String
-  description String
-  isDeleted Boolean
+  name            String
+  description     String
+  isDeleted       Boolean
 
-  Message Message[]
+  Message         Message[]
 
-  PricingPlan PricingPlan[]
+  PricingPlan     PricingPlan[]
 }
 
 model Message {
-  id         String   @id @default(uuid())
-  deletedAt  DateTime @default(dbgenerated())
-  createdAt  DateTime @default(now())
+  id              String   @id @default(uuid())
+  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
+  createdAt       DateTime @default(now())
+  available       Boolean @default(true)
 
-  numOrder Int
-  name String
-  body String
-  option Option
-  typeMessage TypeMessage
-  showName Boolean
-  isDeleted Boolean
+  numOrder        Int
+  name            String
+  body            String
+  option          Option
+  typeMessage     TypeMessage
+  showName        Boolean
+  isDeleted       Boolean
 
-  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
-  enterpriseId String
+  enterprise      Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterpriseId    String
 
-  flow Flow @relation(fields: [flowId], references: [id])
-  flowId String
+  flow            Flow @relation(fields: [flowId], references: [id])
+  flowId          String
 
-  parentMessage Message? @relation("ParentMessage", fields: [parentMessageId], references: [id])
+  parentMessage   Message? @relation("ParentMessage", fields: [parentMessageId], references: [id])
   parentMessageId String?
 
-  childMessages Message[] @relation("ParentMessage")
+  childMessages   Message[] @relation("ParentMessage")
 }
 
 model PricingPlan {
-  id         String   @id @default(uuid())
-  deletedAt  DateTime? @default(dbgenerated())
-  createdAt  DateTime @default(now())
+  id              String   @id @default(uuid())
+  deletedAt       DateTime? @default("9999-12-12T00:00:00.000Z")
+  createdAt       DateTime @default(now())
+  available       Boolean @default(true)
 
-  name String
-  description String
-  price Float
+  name            String
+  description     String
+  price           Float
   
-  enterprises Enterprise[]
+  enterprises     Enterprise[]
 
-  flows Flow[]
+  flows           Flow[]
 }
 

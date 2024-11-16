@@ -5,9 +5,10 @@ import { EnterpriseModule } from './enterprise/enterprise.module';
 import { FlowModule } from './flow/flow.module';
 import { MessageModule } from './message/message.module';
 import { PricingPlanModule } from './pricing-plan/pricing-plan.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [ProfileModule, ClientModule, EnterpriseModule, FlowModule, MessageModule, PricingPlanModule],
+  imports: [ProfileModule, ClientModule, EnterpriseModule, FlowModule, MessageModule, PricingPlanModule, AuthModule],
   controllers: [],
   providers: [],
 })
