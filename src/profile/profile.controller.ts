@@ -28,7 +28,7 @@ export class ProfileController {
   examples: {
     example: {
       value: {
-        email: 'test@test.com',
+        email: 'test@gmail.com',
         name: 'Nicolas Velasco',
         phone: '1234567890',
         password: 'password',
@@ -79,7 +79,7 @@ export class ProfileController {
   examples: {
     example: {
       value: {
-        email: 'test@test.com',
+        email: 'test@gmail.com',
         name: 'Nicolas Velasco',
         phone: '1234567890',
         password: 'password',
