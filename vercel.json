@@ -10,7 +10,7 @@
         }
     ],
 
-    "installCommand": "npm i",
+    "installCommand": "npm install",
 
     "routes": [
         {
