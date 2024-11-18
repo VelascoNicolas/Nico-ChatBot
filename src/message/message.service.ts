@@ -48,14 +48,14 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
     const message = await this.message.create({      
       data: {
-        enterpriseId: enterprise.id,
-        flowId: flow.id,
         numOrder: messageDto.numOrder,
         name: messageDto.name,
         body: messageDto.body,
         option: messageDto.option,
         typeMessage: messageDto.TypeMessage,
         showName: messageDto.showName,
+        enterpriseId: enterprise.id,
+        flowId: flow.id,
         parentMessageId: messageDto.parentMessageId,
       }
     });
