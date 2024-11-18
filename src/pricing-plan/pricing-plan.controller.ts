@@ -1,34 +1,63 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { PricingPlanService } from './pricing-plan.service';
 import { CreatePricingPlanDto } from './dto/create-pricing-plan.dto';
 import { UpdatePricingPlanDto } from './dto/update-pricing-plan.dto';
 
-@Controller('pricing-plan')
+@Controller('pricingplan')
 export class PricingPlanController {
   constructor(private readonly pricingPlanService: PricingPlanService) {}
 
   @Post()
-  create(@Body() createPricingPlanDto: CreatePricingPlanDto) {
-    return this.pricingPlanService.create(createPricingPlanDto);
+  async create(@Body() createPricingPlanDto: CreatePricingPlanDto) {
+    try {
+      return await this.pricingPlanService.create(createPricingPlanDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Get()
-  findAll() {
-    return this.pricingPlanService.findAll();
+  async getAll() {
+    try {
+      return await this.pricingPlanService.getAll();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pricingPlanService.findOne(+id);
+  async getOne(@Param('id') id: string) {
+    try {
+      return await this.pricingPlanService.getOne(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePricingPlanDto: UpdatePricingPlanDto) {
-    return this.pricingPlanService.update(+id, updatePricingPlanDto);
+  async update(@Param('id') id: string, @Body() updatePricingPlanDto: UpdatePricingPlanDto) {
+    try {
+      return await this.pricingPlanService.update(id, updatePricingPlanDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pricingPlanService.remove(+id);
+  async softDelete(@Param('id') id: string) {
+    try {
+      await this.pricingPlanService.softDelete(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Patch('/recover/:id')
+  async recover(@Param('id') id: string) {
+    try {
+      return await this.pricingPlanService.recover(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 }

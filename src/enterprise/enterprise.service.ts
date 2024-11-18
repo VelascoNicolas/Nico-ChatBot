@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { CreateEnterpriseDto } from './dto/create-enterprise.dto';
 import { UpdateEnterpriseDto } from './dto/update-enterprise.dto';
 import { PrismaClient } from '@prisma/client';
@@ -20,7 +20,7 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
         where: { id },
       });
       if (!enterprise || !enterprise.available || enterprise.deletedAt < new Date()) {
-        throw new Error('Enterprise not found');
+        throw new NotFoundException('Enterprise not found');
       }
       return enterprise;
     } catch (error) {
@@ -85,7 +85,7 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
       });
   
       if (!enterprise || enterprise.available == true) {
-        throw new Error('Enterprise not found or is already active');
+        throw new NotFoundException('Enterprise not found or is already active');
       }
   
       return this.enterprise.update({
@@ -96,7 +96,7 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
         },
       });
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(error);
     }
   }
 
@@ -108,12 +108,12 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
       });
   
       if (!enterprise || enterprise.deletedAt < new Date() || enterprise.available == false) {
-        throw new Error('Enterprise not found');
+        throw new NotFoundException('Enterprise not found');
       }
   
       return enterprise;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(error);
     }
   }
   
