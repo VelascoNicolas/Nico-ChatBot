@@ -1,5 +1,5 @@
 import { Option, TypeMessage } from "@prisma/client";
-import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { OptionList } from "../enum/option.enum";
 
 export class CreateMessageDto {
@@ -30,12 +30,8 @@ export class CreateMessageDto {
     @IsNotEmpty()
     showName: boolean;
 
-    @IsBoolean()
-    @IsNotEmpty()
-    isDeleted: boolean;
-
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     enterpriseId: string;
 
     @IsString()
