@@ -42,7 +42,7 @@ export class MessageController {
   @Get('getAllWithFlow')
   @ApiBearerAuth('bearerAuth')
   async findAllMessages(@Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findAllMessages(idEnterprise);
   }
 
@@ -50,7 +50,7 @@ export class MessageController {
   @Get('getAllMain')
   @ApiBearerAuth('bearerAuth')
   async findAllMainMessages(@Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findAllMainMessages(idEnterprise);
   }
 
@@ -58,7 +58,7 @@ export class MessageController {
   @Get('getAllDeleted')
   @ApiBearerAuth('bearerAuth')
   async getAllDeletedMessages(@Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.getAllDeletedMessages(idEnterprise);
   }
 
@@ -66,7 +66,7 @@ export class MessageController {
   @Get(':id')
   @ApiBearerAuth('bearerAuth')
   async findOne(@Param('id') id: string, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findMessageById(id, idEnterprise);
   }
 
@@ -74,7 +74,7 @@ export class MessageController {
   @Get('/flow/:flowId')
   @ApiBearerAuth('bearerAuth')
   async findAllMessagesByFlow(@Query('flowId') idFlow: string, @Param() numOrder: number, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, idFlow, numOrder);
   }
 
@@ -82,7 +82,7 @@ export class MessageController {
   @Get('flowName/:flowName')
   @ApiBearerAuth('bearerAuth')
   async findAllMessagesByNumOrderAndFlowByName(@Query('flowName') flowName: string, @Param() numOrder: number, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, flowName, numOrder);
   }
 
@@ -90,7 +90,7 @@ export class MessageController {
   @Get('messagesWithMessages')
   @ApiBearerAuth('bearerAuth')
   async getMessagesWithMessages(@Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.getMessagesWithMessages(idEnterprise);
   }
 
@@ -98,7 +98,7 @@ export class MessageController {
   @Get('messageWithMessages/:id')
   @ApiBearerAuth('bearerAuth')
   async getOneWithMessages(@Query('id') id: string, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.getOneWithMessages(id, idEnterprise);
   }
 
@@ -106,7 +106,7 @@ export class MessageController {
   @Get('/getMessagesWithMenu')
   @ApiBearerAuth('bearerAuth')
   async getMessagesWithMenuMessages(@Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.getMessagesWithMenuMessages(idEnterprise);
   }
 
@@ -114,7 +114,7 @@ export class MessageController {
   @Get('getMessageWithMenu/:id')
   @ApiBearerAuth('bearerAuth')
   async getOneWithMenuMessages(@Query('id') id: string, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.getOneWithMenuMessages(id, idEnterprise);
   }
 
@@ -139,7 +139,7 @@ export class MessageController {
   }})
   @ApiBearerAuth('bearerAuth')
   async update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     updateMessageDto.enterpriseId = idEnterprise;
     return this.messageService.updateMessage({id:id, ...updateMessageDto});
   }
@@ -148,7 +148,7 @@ export class MessageController {
   @Delete(':id')
   @ApiBearerAuth('bearerAuth')
   async remove(@Param('id') id: string, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     await this.messageService.deleteMessageByEnterprise(id, idEnterprise);
   }
 
@@ -156,7 +156,7 @@ export class MessageController {
   @Patch('restoreMessage/:id')
   @ApiBearerAuth('bearerAuth')
   async restoreMessage(@Param('id') id: string, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.restoreDeletedMessage(id, idEnterprise);
   }
  
@@ -164,7 +164,7 @@ export class MessageController {
   @Get('findAllMainMessagesWithIdFlow/:idFlow')
   @ApiBearerAuth('bearerAuth')
   async findAllMainMessagesWithIdFlow(@Param('idFlow') idFlow: string, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findAllMainMessagesWithIdFlow(idEnterprise, idFlow);
   }
 }
