@@ -86,13 +86,13 @@ export class MessageController {
     return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, flowName, numOrder);
   }
 
-  @UseGuards(AuthGuard)
-  @Get('messagesWithMessages')
-  @ApiBearerAuth('bearerAuth')
-  async getMessagesWithMessages(@Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
-    return this.messageService.getMessagesWithMessages(idEnterprise);
-  }
+  // @UseGuards(AuthGuard)
+  // @Get('messagesWithMessages')
+  // @ApiBearerAuth('bearerAuth')
+  // async getMessagesWithMessages(@Req() req) {
+  //   const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
+  //   return this.messageService.getMessagesWithMessages(idEnterprise);
+  // }
 
   @UseGuards(AuthGuard)
   @Get('messageWithMessages/:id')
