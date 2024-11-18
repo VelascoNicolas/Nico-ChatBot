@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Req, Request, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/signUp.dto';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller('auth')
@@ -30,6 +30,7 @@ export class AuthController {
 
   @ApiTags('Authenticated')
   @Post('authenticated')
+  @ApiBearerAuth('bearerAuth')
   async getProfile(@Req() req, @Res() res) {
     try {
       const [type, token] = req.headers.authorization?.split(' ') ?? [];
