@@ -67,10 +67,11 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
     try {
       const existing = await this.getOne(id);
 
-      return this.pricingPlan.update({
+      await this.pricingPlan.update({
         where: { id: existing.id },
         data: { available: false, deletedAt: new Date() },
       });
+      return{ message: `Enterprise with ID ${id} has been soft deleted successfully.` };
     } catch (error) {
       throw new Error(error);
     }

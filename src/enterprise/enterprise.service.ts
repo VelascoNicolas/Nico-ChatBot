@@ -66,13 +66,14 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
 
   async softDelete(id: string) {
     try {
-      return this.enterprise.update({
+      await this.enterprise.update({
         where: { id },
         data: {
           available: false,
           deletedAt: new Date(),
         },
       });
+      return{ message: `Enterprise with ID ${id} has been soft deleted successfully.` };
     } catch (error) {
       throw new Error(error);
     }

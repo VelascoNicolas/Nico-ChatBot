@@ -1,34 +1,96 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Req, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { Request } from 'express';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('client')
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
-  @Post()
-  create(@Body() createClientDto: CreateClientDto) {
-    return this.clientService.create(createClientDto);
-  }
-
   @Get()
-  findAll(@Body() createClientDto: CreateClientDto) {
-    return this.clientService.findAllClientsWithAEnterprise(createClientDto);
+  async getAllEntitiesForAEnterprise(@Req() req: Request) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.getAllEntitiesForAEnterprise(profileId);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
-    return this.clientService.findClientWithEnterprise({id, ...updateClientDto});
+  @Get('deleted')
+  async getAllDeletedEntitiesForAEnterprise(@Req() req: Request) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.getAllDeletedEntitiesForAEnterprise(profileId);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
-    return this.clientService.update({id, ...updateClientDto});
+  @Get(':idClient')
+  async getByIdEntityForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.getByIdEntityForAEnterprise(profileId, idClient);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.clientService.remove(id);
+  @Post()
+  async createEntityForAEnterprise(@Req() req: Request, @Body() data: CreateClientDto) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.createEntityForAEnterprise(profileId, data);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Put(':idClient')
+  async updateEntityForAEnterprise(
+    @Req() req: Request,
+    @Param('idClient') idClient: string,
+    @Body() data: Partial<UpdateClientDto>,
+  ) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.updateEntityForAEnterprise(profileId, idClient, data);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Delete(':idClient')
+  async deleteEntityForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.deleteEntityForAEnterprise(profileId, idClient);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Delete('softdelete/:idClient')
+  async logicDeleteForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.logicDeleteForAEnterprise(profileId, idClient);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Post('restore/:idClient')
+  async restoreLogicDeletedForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
+    try {
+      const profileId = req['profile'].sub;
+      return this.clientService.restoreLogicDeletedForAEnterprise(profileId, idClient);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 }
