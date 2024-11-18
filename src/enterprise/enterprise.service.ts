@@ -16,7 +16,7 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
   
   async getEnterpriseWithPricingPlan(enterpriseId: string) {
     return await this.enterprise.findUnique({
-      where: { id: enterpriseId },
+      where: { id: enterpriseId, available: true },
       include: { pricingPlan: true }
     });
   }
@@ -26,21 +26,21 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
     const {id, ...data} = enterpriseDto;
 
     const pricingPlan = await this.pricingPlan.findUnique({
-      where: { id: enterpriseDto.pricingPlanId }
+      where: { id: enterpriseDto.pricingPlanId,  available: true }
     });
 
     if (!pricingPlan) {
       throw new Error('Pricing plan not found');
     }
 
-    const enterprise = this.enterprise.findFirst({where: { id: enterpriseDto.id }});
+    const enterprise = this.enterprise.findFirst({where: { id: enterpriseDto.id,  available: true }});
 
     if (!enterprise) {
       throw new Error('Enterprise not found');
     }
 
     return await this.enterprise.update({
-      where: {id: id},
+      where: {id: (await enterprise).id},
       data: data
     })
 
@@ -51,11 +51,11 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
   }
 
   findAll() {
-    return this.enterprise.findMany();
+    return this.enterprise.findMany({where: {available: true}});
   }
 
   findOne(id: string) {
-    return this.enterprise.findFirst({where: {id: id}});
+    return this.enterprise.findFirst({where: {id: id, available: true}});
   }
 
   remove(id: string) {
@@ -64,6 +64,6 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
       throw new Error('Enterprise not found');
     }
 
-    return this.enterprise.delete({where: {id: id}});
+    return this.enterprise.update({where: {id: id}, data: {deletedAt: new Date(Date.now()), available: false}});
   }
 }
