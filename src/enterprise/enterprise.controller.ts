@@ -50,6 +50,19 @@ export class EnterpriseController {
 
   @Patch(':id')
   @ApiTags('Enterprise')
+  @ApiBody({
+    type: CreateEnterpriseDto,
+    examples: {
+      example: {
+        value: {
+          phone: "26121164",
+          name: "Enterprise name",
+          pricingPlan: "4a7cd21b-6a89-4bb1-8c47-e90a2ba1907a",
+          connected: true
+        }
+     }
+    }
+  })
   @ApiBearerAuth('bearerAuth')
   update(@Param('id') id: string, @Body() updateEnterpriseDto: UpdateEnterpriseDto) {
     return this.enterpriseService.updateEnterpriseWithPlan({id: id, ...updateEnterpriseDto});
