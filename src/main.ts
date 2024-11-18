@@ -15,8 +15,8 @@ async function bootstrap() {
   )
 
   const config = new DocumentBuilder()
-  .setTitle('Your API Title')
-  .setDescription('Your API description')
+  .setTitle('API DANIELBOT')
+  .setDescription('[ Base URL: nico-chat-bot.vercel.app ]')
   .setVersion('1.0')
   .addSecurity('bearerAuth', {
     type: 'apiKey',
