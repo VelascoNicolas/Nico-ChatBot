@@ -1,2 +1,0 @@
--- CreateEnum
-CREATE TYPE "Rol" AS ENUM ('ADMIN', 'REDACTOR', 'EMPLEADO');

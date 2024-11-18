@@ -1,79 +1,170 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import { ProfileService } from 'src/profile/profile.service';
+import { ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { Option, TypeMessage } from '@prisma/client';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('message')
+@ApiTags('Message')
 export class MessageController {
-  constructor(private readonly messageService: MessageService) {}
+  constructor(private readonly messageService: MessageService, private readonly profileService: ProfileService) {}
 
-  @Get(':idEnterprise')
-  findAllMessages(@Param('idEnterprise') idEnterprise: string) {
-    return this.messageService.findAllMessages(idEnterprise);
-  }
-
-  @Get(':id')
-  findMessageById(@Param('id') id: string, @Query('idEnterprise') idEnterprise: string) {
-    return this.messageService.findMessageById(id, idEnterprise);
-  }
-
-  @Get('/numOrder/:numOrder')
-  findAllMessagesByNumOrder(@Query('idEnterprise') idEnterprise: string, @Query('idFlow') idFlow: string, @Param('numOrder') numOrder: number) {
-    return this.messageService.findAllMessagesByNumOrder(idEnterprise, idFlow, numOrder);
-  }
-
+  @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createMessageDto: CreateMessageDto) {
+  @ApiBody({
+    type: CreateMessageDto,
+  examples: {
+    example: {
+      value: {
+        numOrder: 1,
+        name: "Message name",
+        body: "Message body",
+        option: `${Option.MENU}`,
+        typeMessage: `${TypeMessage.NAME}`,
+        showName: true,
+        enterpriseId: "9a8d897f-699a-454a-978f-789a897f699a",
+        flowId: "b517b60e-8360-4578-9087-83604578b517",
+        parentMessageId: "517b60e-8360-4578-9087-83604578b517"
+      }
+    }
+  }})
+  @ApiBearerAuth('bearerAuth')
+  async create(@Body() createMessageDto: CreateMessageDto, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    createMessageDto.enterpriseId = idEnterprise;
     return this.messageService.createMessage(createMessageDto);
   }
 
-  @Patch('/entity/:id')
-  updateEntityByEnterprise(@Param('id') id: string, @Query('idEnterprise') idEnterprise: string, @Body() updateMessageDto: UpdateMessageDto) {
-    return this.messageService.updateEntityByEnterprise(updateMessageDto);
+  @UseGuards(AuthGuard)
+  @Get('getAllWithFlow')
+  @ApiBearerAuth('bearerAuth')
+  async findAllMessages(@Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    return this.messageService.findAllMessages(idEnterprise);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string, @Query('idEnterprise') idEnterprise: string) {
-    return this.messageService.deleteEntityByEnterprise(id, idEnterprise);
-  }
-
-  @Get('/main/:idEnterprise')
-  findAllMainMessages(@Param('idEnterprise') idEnterprise: string) {
+  @UseGuards(AuthGuard)
+  @Get('getAllMain')
+  @ApiBearerAuth('bearerAuth')
+  async findAllMainMessages(@Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
     return this.messageService.findAllMainMessages(idEnterprise);
   }
 
-  @Get('/main/flow')
-  findAllMainMessagesByFlow(@Query('idEnterprise') idEnterprise: string, @Query('idFlow') idFlow: string) {
-    return this.messageService.findAllMainMessagesWithIdFlow(idEnterprise, idFlow);
+  @UseGuards(AuthGuard)
+  @Get('getAllDeleted')
+  @ApiBearerAuth('bearerAuth')
+  async getAllDeletedMessages(@Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    return this.messageService.getAllDeletedMessages(idEnterprise);
   }
 
-  @Get('/child/:parentMessageId')
-  findAllChildMessages(@Param('parentMessageId') parentMessageId: string) {
-    return this.messageService.findChildMessages(parentMessageId);
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  @ApiBearerAuth('bearerAuth')
+  async findOne(@Param('id') id: string, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    return this.messageService.findMessageById(id, idEnterprise);
   }
 
-  @Get('/messages')
-  getMessagesWithMessages(@Query('idEnterprise') idEnterprise: string) {
+  @UseGuards(AuthGuard)
+  @Get('/flow/:flowId')
+  @ApiBearerAuth('bearerAuth')
+  async findAllMessagesByFlow(@Query('flowId') idFlow: string, @Param() numOrder: number, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, idFlow, numOrder);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('flowName/:flowName')
+  @ApiBearerAuth('bearerAuth')
+  async findAllMessagesByNumOrderAndFlowByName(@Query('flowName') flowName: string, @Param() numOrder: number, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, flowName, numOrder);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('messagesWithMessages')
+  @ApiBearerAuth('bearerAuth')
+  async getMessagesWithMessages(@Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
     return this.messageService.getMessagesWithMessages(idEnterprise);
   }
 
-  @Get('/message/:id')
-  getOneWithMessages(@Query('id') id: string, @Query('idEnterprise') idEnterprise: string) {
+  @UseGuards(AuthGuard)
+  @Get('messageWithMessages/:id')
+  @ApiBearerAuth('bearerAuth')
+  async getOneWithMessages(@Query('id') id: string, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
     return this.messageService.getOneWithMessages(id, idEnterprise);
   }
 
-  @Get('/menu/:idEnterprise')
-  getMessagesWithMenuMessages(@Query('idEnterprise') idEnterprise: string) {
+  @UseGuards(AuthGuard)
+  @Get('/getMessagesWithMenu')
+  @ApiBearerAuth('bearerAuth')
+  async getMessagesWithMenuMessages(@Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
     return this.messageService.getMessagesWithMenuMessages(idEnterprise);
   }
 
-  @Get('/menu/message/:id')
-  getOneWithMenuMessages(@Query('id') id: string, @Query('idEnterprise') idEnterprise: string) {
+  @UseGuards(AuthGuard)
+  @Get('getMessageWithMenu/:id')
+  @ApiBearerAuth('bearerAuth')
+  async getOneWithMenuMessages(@Query('id') id: string, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
     return this.messageService.getOneWithMenuMessages(id, idEnterprise);
-  } 
+  }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
-  updateMessage(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
-    return this.messageService.updateMessage({id: id, ...updateMessageDto});
+  @ApiBody({
+    type: CreateMessageDto,
+  examples: {
+    example: {
+      value: {
+        numOrder: 1,
+        name: "Message name",
+        body: "Message body",
+        option: `${Option.MENU}`,
+        typeMessage: `${TypeMessage.NAME}`,
+        showName: true,
+        enterpriseId: "9a8d897f-699a-454a-978f-789a897f699a",
+        flowId: "b517b60e-8360-4578-9087-83604578b517",
+        parentMessageId: "517b60e-8360-4578-9087-83604578b517"
+      }
+    }
+  }})
+  @ApiBearerAuth('bearerAuth')
+  async update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    updateMessageDto.enterpriseId = idEnterprise;
+    return this.messageService.updateMessage({id:id, ...updateMessageDto});
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  @ApiBearerAuth('bearerAuth')
+  async remove(@Param('id') id: string, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    await this.messageService.deleteMessageByEnterprise(id, idEnterprise);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('restoreMessage/:id')
+  @ApiBearerAuth('bearerAuth')
+  async restoreMessage(@Param('id') id: string, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    return this.messageService.restoreDeletedMessage(id, idEnterprise);
+  }
+ 
+  @UseGuards(AuthGuard)
+  @Get('findAllMainMessagesWithIdFlow/:idFlow')
+  @ApiBearerAuth('bearerAuth')
+  async findAllMainMessagesWithIdFlow(@Param('idFlow') idFlow: string, @Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    return this.messageService.findAllMainMessagesWithIdFlow(idEnterprise, idFlow);
   }
 }

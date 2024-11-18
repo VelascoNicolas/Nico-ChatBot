@@ -2,8 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards }
 import { ProfileService } from './profile.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-//import { ProfileDto } from './dto/profile.dto';
-//import { ProfileEnterpriseDto } from './dto/profile-enterprise.dto';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { RoleDto } from './dto/update-role.dto';
