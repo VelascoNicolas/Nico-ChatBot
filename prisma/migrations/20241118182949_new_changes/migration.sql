@@ -2,13 +2,23 @@
 CREATE TYPE "Option" AS ENUM ('CAPTURE', 'MENU', 'READ');
 
 -- CreateEnum
+CREATE TYPE "Rol" AS ENUM ('ADMIN', 'REDACTOR', 'EMPLEADO');
+
+-- CreateEnum
 CREATE TYPE "TypeMessage" AS ENUM ('NUMBER', 'NAME', 'DEFAULT');
 
 -- CreateTable
 CREATE TABLE "Profile" (
     "id" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3) NOT NULL DEFAULT '9999-12-12 00:00:00 +00:00',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
+    "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" "Rol" NOT NULL,
     "enterpriseId" TEXT NOT NULL,
 
     CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
@@ -17,8 +27,10 @@ CREATE TABLE "Profile" (
 -- CreateTable
 CREATE TABLE "Client" (
     "id" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3) NOT NULL DEFAULT '9999-12-12 00:00:00 +00:00',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
     "username" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "enterpriseId" TEXT NOT NULL,
@@ -29,8 +41,10 @@ CREATE TABLE "Client" (
 -- CreateTable
 CREATE TABLE "Enterprise" (
     "id" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3) NOT NULL DEFAULT '9999-12-12 00:00:00 +00:00',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
     "name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "connected" BOOLEAN NOT NULL,
@@ -42,8 +56,10 @@ CREATE TABLE "Enterprise" (
 -- CreateTable
 CREATE TABLE "Flow" (
     "id" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3) NOT NULL DEFAULT '9999-12-12 00:00:00 +00:00',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "isDeleted" BOOLEAN NOT NULL,
@@ -54,15 +70,16 @@ CREATE TABLE "Flow" (
 -- CreateTable
 CREATE TABLE "Message" (
     "id" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3) NOT NULL DEFAULT '9999-12-12 00:00:00 +00:00',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
     "numOrder" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "body" TEXT NOT NULL,
     "option" "Option" NOT NULL,
     "typeMessage" "TypeMessage" NOT NULL,
     "showName" BOOLEAN NOT NULL,
-    "isDeleted" BOOLEAN NOT NULL,
     "enterpriseId" TEXT NOT NULL,
     "flowId" TEXT NOT NULL,
     "parentMessageId" TEXT,
@@ -73,8 +90,10 @@ CREATE TABLE "Message" (
 -- CreateTable
 CREATE TABLE "PricingPlan" (
     "id" TEXT NOT NULL,
-    "deletedAt" TIMESTAMP(3),
+    "deletedAt" TIMESTAMP(3) DEFAULT '9999-12-12 00:00:00 +00:00',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
@@ -87,6 +106,9 @@ CREATE TABLE "_FlowToPricingPlan" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Profile_email_key" ON "Profile"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_FlowToPricingPlan_AB_unique" ON "_FlowToPricingPlan"("A", "B");
