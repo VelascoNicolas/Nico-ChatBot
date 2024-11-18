@@ -14,56 +14,133 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
     await this.$connect();
   }
   
+  async getOne(id: string) {
+    try {
+      const enterprise = await this.enterprise.findUnique({
+        where: { id },
+      });
+      if (!enterprise || !enterprise.available || enterprise.deletedAt < new Date()) {
+        throw new Error('Enterprise not found');
+      }
+      return enterprise;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getAll() {
+    try {
+      return this.enterprise.findMany({
+        where: {
+          available: true,
+          deletedAt: { gte: new Date() },
+        },
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async create(createEnterpriseDto: CreateEnterpriseDto) {
+    try {
+      return this.enterprise.create({
+        data: {
+          ...createEnterpriseDto,
+        },
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async update(id: string, updateEnterpriseDto: UpdateEnterpriseDto) {
+    try {
+      return this.enterprise.update({
+        where: { id },
+        data: updateEnterpriseDto,
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async softDelete(id: string) {
+    try {
+      return this.enterprise.update({
+        where: { id },
+        data: {
+          available: false,
+          deletedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async recover(id: string) {
+    try {
+      const enterprise = await this.enterprise.findUnique({
+        where: { id },
+      });
+  
+      if (!enterprise || enterprise.available == true) {
+        throw new Error('Enterprise not found or is already active');
+      }
+  
+      return this.enterprise.update({
+        where: { id },
+        data: {
+          available: true,
+          deletedAt: new Date('9999-12-12T00:00:00.000Z'),
+        },
+      });
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
   async getEnterpriseWithPricingPlan(enterpriseId: string) {
-    return await this.enterprise.findUnique({
-      where: { id: enterpriseId },
-      include: { pricingPlan: true }
-    });
-  }
-
-  async updateEnterpriseWithPlan(enterpriseDto: UpdateEnterpriseDto) {
-
-    const {id, ...data} = enterpriseDto;
-
-    const pricingPlan = await this.pricingPlan.findUnique({
-      where: { id: enterpriseDto.pricingPlanId }
-    });
-
-    if (!pricingPlan) {
-      throw new Error('Pricing plan not found');
+    try {
+      const enterprise = await this.enterprise.findUnique({
+        where: { id: enterpriseId },
+        include: { pricingPlan: true },
+      });
+  
+      if (!enterprise || enterprise.deletedAt < new Date() || enterprise.available == false) {
+        throw new Error('Enterprise not found');
+      }
+  
+      return enterprise;
+    } catch (error) {
+      throw new Error(error.message);
     }
-
-    const enterprise = this.enterprise.findFirst({where: { id: enterpriseDto.id }});
-
-    if (!enterprise) {
-      throw new Error('Enterprise not found');
-    }
-
-    return await this.enterprise.update({
-      where: {id: id},
-      data: data
-    })
-
   }
+  
 
-  create(createEnterpriseDto: CreateEnterpriseDto) {
-    return this.enterprise.create({data: createEnterpriseDto});
-  }
+  // async updateEnterpriseWithPlan(enterpriseDto: UpdateEnterpriseDto) {
 
-  findAll() {
-    return this.enterprise.findMany();
-  }
+  //   const {id, ...data} = enterpriseDto;
 
-  findOne(id: string) {
-    return this.enterprise.findFirst({where: {id: id}});
-  }
+  //   const pricingPlan = await this.pricingPlan.findUnique({
+  //     where: { id: enterpriseDto.pricingPlanId }
+  //   });
 
-  remove(id: string) {
-    const data = this.findOne(id);
-    if (!data) {
-      throw new Error('Enterprise not found');
-    }
+  //   if (!pricingPlan) {
+  //     throw new Error('Pricing plan not found');
+  //   }
 
-    return this.enterprise.delete({where: {id: id}});
-  }
+  //   const enterprise = this.enterprise.findFirst({where: { id: enterpriseDto.id }});
+
+  //   if (!enterprise) {
+  //     throw new Error('Enterprise not found');
+  //   }
+
+  //   return await this.enterprise.update({
+  //     where: {id: id},
+  //     data: data
+  //   })
+
+  // }
+
 }

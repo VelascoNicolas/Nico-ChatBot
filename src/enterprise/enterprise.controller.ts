@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { EnterpriseService } from './enterprise.service';
 import { CreateEnterpriseDto } from './dto/create-enterprise.dto';
 import { UpdateEnterpriseDto } from './dto/update-enterprise.dto';
@@ -7,28 +7,67 @@ import { UpdateEnterpriseDto } from './dto/update-enterprise.dto';
 export class EnterpriseController {
   constructor(private readonly enterpriseService: EnterpriseService) {}
 
-  @Post()
-  create(@Body() createEnterpriseDto: CreateEnterpriseDto) {
-    return this.enterpriseService.create(createEnterpriseDto);
+  @Get(':id')
+  async getOne(@Param('id') id: string) {
+    try {
+      return await this.enterpriseService.getOne(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Get()
-  findAll() {
-    return this.enterpriseService.findAll();
+  async getAll() {
+    try {
+      return this.enterpriseService.getAll();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }    
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.enterpriseService.findOne(id);
+  
+  @Post()
+  async create(@Body() createEnterpriseDto: CreateEnterpriseDto) {
+    try {
+      return await this.enterpriseService.create(createEnterpriseDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEnterpriseDto: UpdateEnterpriseDto) {
-    return this.enterpriseService.updateEnterpriseWithPlan({id: id, ...updateEnterpriseDto});
+  async update(@Param('id') id: string, @Body() updateEnterpriseDto: UpdateEnterpriseDto) {
+    try {
+      return await this.enterpriseService.update(id, updateEnterpriseDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.enterpriseService.remove(id);
+  async softDelete(@Param('id') id: string) {
+    try {
+      return await this.enterpriseService.softDelete(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
+
+  @Patch('recover/:id')
+  async recover(@Param('id') id: string) {
+    try {
+      return await this.enterpriseService.recover(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @Get('/pricingplan/:id')
+  async getEnterpriseWithPricingPlan(@Param('id') id: string) {
+    try {
+      return await this.enterpriseService.getEnterpriseWithPricingPlan(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
 }
