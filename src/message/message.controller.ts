@@ -76,4 +76,5 @@ export class MessageController {
   updateMessage(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
     return this.messageService.updateMessage({id: id, ...updateMessageDto});
   }
+  
 }
