@@ -14,54 +14,8 @@ export class MessageService extends PrismaClient implements OnModuleInit{
     await this.$connect();
   }
 
-  async findAllMessages(idEnterprise: string) {
-    return await this.message.findMany({where: {enterpriseId: idEnterprise}, include: {enterprise: true}});
-  }
-
-  async findMessageById(id: string, idEnterprise: string) {
-    const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise}, include: {enterprise: true}});
-
-    if (!message) {
-      throw new Error(`Message with id ${id} not found`);
-    }
-
-    return message;
-  }
-
-  async findAllMessagesByNumOrder(idEnterprise: string, idFlow: string, numOrder: number) {
-    const flow = await this.flow.findUnique({where: {id: idFlow}});
-
-    if (!flow) {
-      throw new Error(`Flow with id ${idFlow} not found`);
-    }
-
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, numOrder: numOrder, flowId: flow.id}});
-
-    if(messages.length <= 0) {
-      throw new Error(`No messages found for numOrder ${numOrder} in flow ${idFlow}`);
-    }
-
-    return messages;
-  }
-
-  async findAllMessagesByNumOrderAndFlowByName(idEnterprise: string, nameFlow: string, numOrder: number) {
-    const flow = await this.flow.findFirst({where: {name: nameFlow}});
-
-    if (!flow) {
-      throw new Error(`Flow with name ${nameFlow} not found`);
-    }
-
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, numOrder: numOrder, flowId: flow.id}});
-
-    if(messages.length <= 0) {
-      throw new Error(`No messages found for numOrder ${numOrder} in flow ${nameFlow}`);
-    }
-
-    return messages;
-  }
-
   async createMessage(messageDto: CreateMessageDto) {
-    const enterprise = await this.enterprise.findUnique({where: {id: messageDto.enterpriseId}, include: {pricingPlan: true}});
+    const enterprise = await this.enterprise.findUnique({where: {id: messageDto.enterpriseId, available: true}, include: {pricingPlan: true}});
 
     if (!enterprise) {
       throw new Error(`Enterprise with id ${messageDto.enterpriseId} not found`);
@@ -71,7 +25,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
       throw new Error(`Enterprise with id ${messageDto.enterpriseId} has no pricing plan`);
     }
 
-    const flow = await this.flow.findUnique({where: {id: messageDto.flowId}, include: {PricingPlan: true}});
+    const flow = await this.flow.findUnique({where: {id: messageDto.flowId, available: true}, include: {PricingPlan: true}});
 
     if (!flow) {
       throw new Error(`Flow with id ${messageDto.flowId} not found`);
@@ -94,15 +48,14 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
     const message = await this.message.create({      
       data: {
-        enterpriseId: enterprise.id,
-        flowId: flow.id,
         numOrder: messageDto.numOrder,
         name: messageDto.name,
         body: messageDto.body,
         option: messageDto.option,
         typeMessage: messageDto.TypeMessage,
         showName: messageDto.showName,
-        isDeleted: messageDto.isDeleted,
+        enterpriseId: enterprise.id,
+        flowId: flow.id,
         parentMessageId: messageDto.parentMessageId,
       }
     });
@@ -110,27 +63,41 @@ export class MessageService extends PrismaClient implements OnModuleInit{
     return message;
   }
 
-  async updateEntityByEnterprise(updateMessageDto: UpdateMessageDto) {
-    const updatedMessage = await this.message.update({
-      where: {id: updateMessageDto.id, enterpriseId: updateMessageDto.enterpriseId},
-      data: {
-        enterpriseId: updateMessageDto.enterpriseId,
-        flowId: updateMessageDto.flowId,
-        name: updateMessageDto.name,
-        body: updateMessageDto.body,
-        option: updateMessageDto.option,
-        typeMessage: updateMessageDto.TypeMessage,
-        showName: updateMessageDto.showName,
-        isDeleted: updateMessageDto.isDeleted,
-        parentMessageId: updateMessageDto.parentMessageId
-      }
-    });
-
-    return updatedMessage;
+  async findAllMessages(idEnterprise: string) {
+    return await this.message.findMany({where: {enterpriseId: idEnterprise, available: true}, include: {enterprise: true, flow: true}});
   }
 
-  async deleteEntityByEnterprise(id: string, idEnterprise: string) {
-    const message = await this.message.delete({where: {id, enterpriseId: idEnterprise}});
+  async findAllMainMessages(idEnterprise: string) {
+    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, parentMessageId: null, available: true}, include: {enterprise: true, childMessages: true}, orderBy: { numOrder: 'asc' }});
+  
+    for(const message of messages) {
+      (message as any).childMessages.forEach((messagito: any) => {
+        messagito.childMessages = this.findChildMessages(message.id)
+      });
+    }
+  
+  
+    return messages;
+  }
+
+  async getAllDeletedMessages(idEnterprise: string) {
+    const enterprise = await this.enterprise.findUnique({where: {id: idEnterprise, available: true}});
+
+    if (!enterprise) {
+      throw new Error(`Enterprise with id ${idEnterprise} not found`);
+    }
+
+    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, available: false}, include: {flow: true, enterprise: true}});
+  
+    if(messages.length <= 0) {
+      throw new Error(`No messages found for enterprise ${idEnterprise}`);
+    }
+
+    return messages;
+  }
+
+  async findMessageById(id: string, idEnterprise: string) {
+    const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise, available: true}, include: {enterprise: true}});
 
     if (!message) {
       throw new Error(`Message with id ${id} not found`);
@@ -139,46 +106,50 @@ export class MessageService extends PrismaClient implements OnModuleInit{
     return message;
   }
 
-  async findAllMainMessages(idEnterprise: string) {
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, parentMessageId: null}, include: {enterprise: true, childMessages: true}, orderBy: { numOrder: 'asc' }});
-  
-    for(const message of messages) {
-      (message as any).childMessages.forEach((messagito: any) => {
-        messagito.childMessages = this.findChildMessages(message.id)
-      });
+  async findAllMessagesByNumOrder(idEnterprise: string, idFlow: string, numOrder: number) {
+
+    const enterprise = await this.enterprise.findUnique({where: {id: idEnterprise, available: true}});
+
+    if (!enterprise) {
+      throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
-  
-  
+
+    const flow = await this.flow.findUnique({where: {id: idFlow, available: true}});
+
+    if (!flow) {
+      throw new Error(`Flow with id ${idFlow} not found`);
+    }
+
+    const messages = await this.message.findMany({where: {enterpriseId: enterprise.id, numOrder: numOrder, flowId: flow.id, available: true}});
+
+    if(messages.length <= 0) {
+      throw new Error(`No messages found for numOrder ${numOrder} in flow ${idFlow}`);
+    }
+
     return messages;
   }
 
-  async findAllMainMessagesWithIdFlow(idEnterprise: string, idFlow: string) {
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, parentMessageId: null, flowId: idFlow}, include: {enterprise: true}, orderBy: { numOrder: 'asc' }});
-  
-    for(const message of messages) {
-      (message as any).childMessages.forEach((messagito: any) => {
-        messagito.childMessages = this.findChildMessages(message.id)
-      });
+  async findAllMessagesByNumOrderAndFlowByName(idEnterprise: string, nameFlow: string, numOrder: number) {
+    
+    const enterprise = await this.enterprise.findUnique({where: {id: idEnterprise, available: true}});
+
+    if (!enterprise) {
+      throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
-  
-  
+    
+    const flow = await this.flow.findFirst({where: {name: nameFlow, available: true}});
+
+    if (!flow) {
+      throw new Error(`Flow with name ${nameFlow} not found`);
+    }
+
+    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, numOrder: numOrder, flowId: flow.id, available: true}});
+
+    if(messages.length <= 0) {
+      throw new Error(`No messages found for numOrder ${numOrder} in flow ${nameFlow}`);
+    }
+
     return messages;
-  }
-
-  async findChildMessages(parentMessageId: string) {
-    const childMessages = await this.message.findMany({
-      where: {parentMessageId: parentMessageId},
-      orderBy: {numOrder: 'asc'},
-      include: {childMessages: true}
-    });
-
-    for(const child of childMessages) {
-      if(child.childMessages.length > 0) {
-        child.childMessages = await this.findChildMessages(child.id);
-      }
-    }
-
-    return childMessages;
   }
 
   async getMessagesWithMessages(idEnterprise: string) {
@@ -188,6 +159,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
         enterprise: {
           id: idEnterprise,
         },
+        available: true,
       },
       include: {
         flow: true,
@@ -219,6 +191,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
         enterprise: {
           id: idEnterprise,
         },
+        available: true
       },
       include: {
         flow: true,
@@ -251,6 +224,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
           id: idEnterprise,
         },
         option: "MENU",
+        available: true,
       },
       include: {
         flow: true,
@@ -283,6 +257,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
           id: idEnterprise,
         },
         option: "MENU",
+        available: true,
       },
       include: {
         flow: true,
@@ -310,16 +285,22 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
   async updateMessage( message: UpdateMessageDto) {
     
-    const enterprise = await this.enterprise.findUnique({where: {id: message.enterpriseId}});
+    const enterprise = await this.enterprise.findUnique({where: {id: message.enterpriseId, available: true}});
 
     if (!enterprise) {
       throw new Error(`Enterprise with id ${message.enterpriseId} not found`);
     }
 
-    const flow = await this.flow.findUnique({where: {id: message.flowId}});
+    const flow = await this.flow.findUnique({where: {id: message.flowId, available: true}});
 
     if (!flow) {
       throw new Error(`Flow with id ${message.flowId} not found`);
+    }
+
+    const messageToUpdate = await this.message.findUnique({where: {id: message.id, enterpriseId: enterprise.id, flowId: flow.id, available: true}});
+
+    if (!messageToUpdate) {
+      throw new Error(`Message with id ${message.id} not found`);
     }
 
     const updated = await this.message.update({
@@ -330,5 +311,56 @@ export class MessageService extends PrismaClient implements OnModuleInit{
     return updated;
   }
 
+  async deleteMessageByEnterprise(id: string, idEnterprise: string) {
+    const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise, available: true}});
+
+    if (!message) {
+      throw new Error(`Message with id ${id} not found`);
+    }   
+   
+    const deleted = await this.message.update({where: {id, enterpriseId: idEnterprise}, data: {available: false}});
+
+    return 'message deleted successfully';
+  }
+
+  async restoreDeletedMessage(id: string, idEnterprise: string) {
+    const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise, available: false}});
+
+    if (!message) {
+      throw new Error(`Message with id ${id} not eliminated or not exist`);
+    }
+
+    const restored = await this.message.update({where: {id, enterpriseId: idEnterprise}, data: {available: true}});
+
+    return restored;
+  }
+
+  async findAllMainMessagesWithIdFlow(idEnterprise: string, idFlow: string) {
+    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, parentMessageId: null, flowId: idFlow, available: true}, include: {enterprise: true}, orderBy: { numOrder: 'asc' }});
   
+    for(const message of messages) {
+      (message as any).childMessages.forEach((messagito: any) => {
+        messagito.childMessages = this.findChildMessages(message.id)
+      });
+    }
+
+    return messages;
+  }
+
+  //Este metodo no necesita tener endpoint
+  async findChildMessages(parentMessageId: string) {
+    const childMessages = await this.message.findMany({
+      where: {parentMessageId: parentMessageId, available: true},
+      orderBy: {numOrder: 'asc'},
+      include: {childMessages: true}
+    });
+
+    for(const child of childMessages) {
+      if(child.childMessages.length > 0) {
+        child.childMessages = await this.findChildMessages(child.id);
+      }
+    }
+
+    return childMessages;
+  }  
 }
