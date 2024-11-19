@@ -14,54 +14,206 @@ export class ClientService extends PrismaClient implements OnModuleInit{
     await this.$connect();
   }
 
-  async findAllClientsWithAEnterprise(createClientDto: CreateClientDto) {
-    return await this.client.findMany({
-      where: { enterprise: { id: createClientDto.enterpriseId } }
-    });
-  }
-
-  async findClientWithEnterprise(updateClientDto: UpdateClientDto) {
-    return await this.client.findUnique({
-      where: { id: updateClientDto.id, enterprise: { id: updateClientDto.enterpriseId } }
-    });
-  }
-
-  create(createClientDto: CreateClientDto) {
-    const enterprise = this.enterprise.findFirst({where: {id: createClientDto.enterpriseId}});
+  async getAllClientsForEnterprise(idEnterprise: string) {
+    const enterprise = await this.enterprise.findUnique({
+      where: {
+        id: idEnterprise,
+        available: true,
+      }
+    })
 
     if (!enterprise) {
       throw new Error('Enterprise not found');
     }
 
-    return this.client.create({
-      data: createClientDto
+    const clients = await this.client.findMany({
+      where: {
+        enterpriseId: enterprise.id,
+        available: true,
+      }
     })
+
+    if(clients.length === 0) {
+      throw new Error(`Clients not found for Enterprise with id: ${enterprise.id}`);
+    }
+
+    return clients;
   }
 
-  update(updateClientDto: UpdateClientDto) {
-    const {id, ...data} = updateClientDto;
+  async getClientById(id: string, idEnterprise: string) {
 
-    const enterprise = this.enterprise.findFirst({where: {id: updateClientDto.enterpriseId}});
+    const enterprise = await this.enterprise.findUnique({
+      where: {
+        id: idEnterprise,
+        available: true,
+      }
+    });
 
     if (!enterprise) {
       throw new Error('Enterprise not found');
     }
 
-    return this.client.update({
-      where: {id: id},
-      data: data
-    })
+    const client = await this.client.findUnique({
+      where: {
+        id,
+        enterpriseId: enterprise.id,
+        available: true,
+      }
+    });
+
+    if (!client) {
+      throw new Error(`Client not found for Enterprise with id: ${enterprise.id}`);
+    }
+
+    return client;
   }
 
-  remove(id: string) {
-    const client = this.client.findFirst({where: {id: id}});
+  async createClient(createClientDto: CreateClientDto) {
+    const enterprise = await this.enterprise.findUnique({
+      where: {
+        id: createClientDto.enterpriseId,
+        available: true,
+      }
+    });
+
+    if (!enterprise) {
+      throw new Error('Enterprise not found');
+    }
+
+    const client = await this.client.create({
+      data: {
+        username: createClientDto.username,
+        phone: createClientDto.phone,
+        enterpriseId: enterprise.id,
+        available: true,
+      },
+      include: {
+        enterprise: true,
+      }
+    });
+
+    return client;
+  }
+
+  async getAllDeletedClients(idEnterprise: string) {
+    const enterprise = await this.enterprise.findUnique({
+      where: {
+        id: idEnterprise,
+        available: true,
+      }
+    });
+
+    if (!enterprise) {
+      throw new Error('Enterprise not found');
+    }
+
+    const clients = await this.client.findMany({
+      where: {
+        enterpriseId: enterprise.id,
+        available: false,
+      }
+    });
+
+    if(clients.length === 0) {
+      throw new Error(`Deleted Clients not found for Enterprise with id: ${enterprise.id}`);
+    }
+
+    return clients;
+  }
+
+  async updateClient(id: string, updateClientDto: UpdateClientDto) {
+    
+    const enterprise = await this.enterprise.findUnique({
+      where: {
+        id: updateClientDto.enterpriseId,
+        available: true,
+      }
+    });
+
+    if (!enterprise) {
+      throw new Error('Enterprise not found');
+    }
+    
+    const client = await this.client.findUnique({
+      where: {
+        id,
+        enterpriseId: enterprise.id,
+        available: true,
+      }
+    });
 
     if (!client) {
       throw new Error('Client not found');
     }
 
-    return this.client.delete({
-      where: {id: id}
+    const updatedClient = await this.client.update({
+      where: {
+        id,
+      },
+      data: {
+        username: updateClientDto.username,
+        phone: updateClientDto.phone,
+        enterpriseId: enterprise.id,
+      },
+      include: {
+        enterprise: true,
+      }
     });
+
+    return updatedClient;
+  }
+
+  async softDelete(id: string) {
+    const client = await this.client.findUnique({
+      where: {
+        id,
+        available: true,
+      }
+    });
+
+    if (!client) {
+      throw new Error('Client not found');
+    }
+
+    const deletedClient = await this.client.update({
+      where: {
+        id,
+      },
+      data: {
+        available: false,
+      },
+      include: {
+        enterprise: true,
+      }
+    });
+
+    return {message: `Client with ID ${deletedClient.id} has been deleted successfully`};
+  }
+
+  async restoreClient(id: string) {
+    const client = await this.client.findUnique({
+      where: {
+        id,
+        available: false,
+      }
+    });
+
+    if (!client) {
+      throw new Error('Client not found');
+    }
+
+    const restoredClient = await this.client.update({
+      where: {
+        id,
+      },
+      data: {
+        available: true,
+      },
+      include: {
+        enterprise: true,
+      }
+    });
+
+    return {message: `Client with ID ${restoredClient.id} has been restored successfully`};
   }
 }

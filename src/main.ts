@@ -1,10 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { envs } from './config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const logger = new Logger();
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -13,6 +16,13 @@ async function bootstrap() {
      forbidNonWhitelisted: true,
     })
   )
+
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    credentials: true, 
+  });
 
   const config = new DocumentBuilder()
   .setTitle('API DANIELBOT')
@@ -49,6 +59,7 @@ async function bootstrap() {
     })
   );
 
-  await app.listen(3000);
+  await app.listen(envs.port);
+  logger.log(`Server running on port ${envs.port}`);
 }
 bootstrap();
