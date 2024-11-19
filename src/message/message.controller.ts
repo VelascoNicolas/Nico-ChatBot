@@ -33,7 +33,7 @@ export class MessageController {
   }})
   @ApiBearerAuth('bearerAuth')
   async create(@Body() createMessageDto: CreateMessageDto, @Req() req) {
-    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.sub);
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     createMessageDto.enterpriseId = idEnterprise;
     return this.messageService.createMessage(createMessageDto);
   }
@@ -63,7 +63,7 @@ export class MessageController {
   }
 
   @UseGuards(AuthGuard)
-  @Get(':id')
+  @Get('/findJustOne/:id')
   @ApiBearerAuth('bearerAuth')
   async findOne(@Param('id') id: string, @Req() req) {
     const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
@@ -73,7 +73,7 @@ export class MessageController {
   @UseGuards(AuthGuard)
   @Get('/flow/:flowId')
   @ApiBearerAuth('bearerAuth')
-  async findAllMessagesByFlow(@Query('flowId') idFlow: string, @Param() numOrder: number, @Req() req) {
+  async findAllMessagesByFlow(@Query('flowId') idFlow: string, @Param('numOrder') numOrder: number, @Req() req) {
     const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, idFlow, numOrder);
   }
@@ -81,21 +81,21 @@ export class MessageController {
   @UseGuards(AuthGuard)
   @Get('flowName/:flowName')
   @ApiBearerAuth('bearerAuth')
-  async findAllMessagesByNumOrderAndFlowByName(@Query('flowName') flowName: string, @Param() numOrder: number, @Req() req) {
+  async findAllMessagesByNumOrderAndFlowByName(@Param('flowName') flowName: string, @Query('numOrder') numOrder: number, @Req() req) {
     const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
     return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, flowName, numOrder);
   }
 
-  // @UseGuards(AuthGuard)
-  // @Get('messagesWithMessages')
-  // @ApiBearerAuth('bearerAuth')
-  // async getMessagesWithMessages(@Req() req) {
-  //   const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
-  //   return this.messageService.getMessagesWithMessages(idEnterprise);
-  // }
+  @UseGuards(AuthGuard)
+  @Get('messagesRecursive')
+  @ApiBearerAuth('bearerAuth')
+  async getMessagesRecursive(@Req() req) {
+    const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
+    return this.messageService.findMessagesWithMessages(idEnterprise);
+  }
 
   @UseGuards(AuthGuard)
-  @Get('messageWithMessages/:id')
+  @Get('/messageWithMessages/:id')
   @ApiBearerAuth('bearerAuth')
   async getOneWithMessages(@Query('id') id: string, @Req() req) {
     const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
@@ -103,7 +103,7 @@ export class MessageController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('/getMessagesWithMenu')
+  @Get('getMessagesWithMenu')
   @ApiBearerAuth('bearerAuth')
   async getMessagesWithMenuMessages(@Req() req) {
     const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);

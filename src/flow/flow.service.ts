@@ -2,10 +2,12 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateFlowDto } from './dto/create-flow.dto';
 import { UpdateFlowDto } from './dto/update-flow.dto';
 import { PrismaClient } from '@prisma/client';
+import { MessageService } from '../message/message.service';
+
 
 @Injectable()
 export class FlowService extends PrismaClient implements OnModuleInit {
-  constructor() {
+  constructor(private readonly messageService: MessageService) {
     super();
   }
 
@@ -13,55 +15,83 @@ export class FlowService extends PrismaClient implements OnModuleInit {
     await this.$connect();
   }
 
-  createFlowWithPricingPlans(createFlowDto: CreateFlowDto) {
-    const pricingPlansEntities = [];
+  async findFlowsWithEnterprise(idEnterprise: string) {
+    const enterprise = await this.enterprise.findFirst({
+      where: { id: idEnterprise, available: true },
+      include: { pricingPlan: true },
+    });
 
-    if (createFlowDto.pricingPlans && createFlowDto.pricingPlans.length > 0) {
-      createFlowDto.pricingPlans.forEach((pricingPlan) => {
-        const pricing = this.pricingPlan.findFirst({
-          where: { id: pricingPlan.id },
-        });
+    if (!enterprise) {
+      throw new Error(`Enterprise with id ${idEnterprise} not found`);
+    }
+    const pricingPlan = await this.pricingPlan.findUnique({
+      where: { id: enterprise.pricingPlanId },
+      include: { flows: true },
+    });
 
-        if (!pricing) {
-          throw new Error(`Pricing with id ${pricingPlan.id} not found`);
-        }
+    if (!pricingPlan) {
+      throw new Error(`Enterprise with id ${idEnterprise} has no pricing plan`);
+    }
+    const flowx = pricingPlan.flows;
 
-        pricingPlansEntities.push(pricing);
-      });
+    const {flows, ...data} = pricingPlan;
+
+    return {Flows: flowx, pricingPlan: data};
+  }
+
+  async findFlowsWithPricingPlanId(pricingPlanId: string) {
+    const pricingPlan = await this.pricingPlan.findUnique({
+      where: { id: pricingPlanId, available: true},
+      include: { flows: true },
+    });
+
+    if (!pricingPlan) {
+      throw new Error(`Pricing plan with id ${pricingPlanId} not found`);
     }
 
-    return this.flow.create({
+    return pricingPlan.flows;
+  }
+
+  async create(createFlowDto: CreateFlowDto) {
+    for (const flowDto of createFlowDto.PricingPlan) {
+      const pricingPlan = await this.pricingPlan.findUnique({
+        where: { id: flowDto.id, available: true },
+      });
+      if (!pricingPlan) {
+        throw new Error(`Pricing plan with id ${flowDto.id} not found`);
+      }
+    }
+
+    const flow = await this.flow.create({
       data: {
-        name: createFlowDto.name,
-        description: createFlowDto.description,
-        isDeleted: createFlowDto.isDeleted,
+        ...createFlowDto,
         PricingPlan: {
-          connect: pricingPlansEntities.map((pricing) => ({ id: pricing.id })), // Connect flow to existing pricing plans by ID
+          connect: createFlowDto.PricingPlan.map((plan) => ({ id: plan.id })),
         },
       },
+      include: { PricingPlan: true },
     });
+
+    return flow;
   }
-  updateFlowWithPricingPlans(updateFlowDto: UpdateFlowDto) {
-    const pricingPlansEntities = [];
 
-    if (updateFlowDto.pricingPlans && updateFlowDto.pricingPlans.length > 0) {
-      updateFlowDto.pricingPlans.forEach((pricingPlan) => {
-        const pricing = this.pricingPlan.findFirst({
-          where: { id: pricingPlan.id },
-        });
-
-        if (!pricing) {
-          throw new Error(`Pricing with id ${pricingPlan.id} not found`);
-        }
-
-        pricingPlansEntities.push(pricing);
-      });
-    }
-
-    const flow = this.flow.findFirst({where: { id: updateFlowDto.id }});
+  async update(updateFlowDto: UpdateFlowDto) {
+    const flow = await this.flow.findUnique({
+      where: { id: updateFlowDto.id, available: true},
+      include: { PricingPlan: true },
+    });
 
     if (!flow) {
       throw new Error(`Flow with id ${updateFlowDto.id} not found`);
+    }
+
+    for (const price of updateFlowDto.PricingPlan) {
+      const pricingPlan = await this.pricingPlan.findUnique({
+        where: { id: price.id, available: true },
+      });
+      if (!pricingPlan) {
+        throw new Error(`Pricing plan with id ${price.id} not found`);
+      }
     }
 
     return this.flow.update({
@@ -69,55 +99,139 @@ export class FlowService extends PrismaClient implements OnModuleInit {
       data: {
         name: updateFlowDto.name,
         description: updateFlowDto.description,
-        isDeleted: updateFlowDto.isDeleted,
         PricingPlan: {
-          connect: pricingPlansEntities.map((pricing) => ({ id: pricing.id })), // Connect flow to existing pricing plans by ID
+          set: updateFlowDto.PricingPlan.map((plan) => ({ id: plan.id })),
         },
       },
+      include: { PricingPlan: true },
     });
   }
 
-  async getFlowsByPricingId(pricingId: string) {
-    return this.flow.findMany({
-      where: {
-        PricingPlan: {
-          some: {
-            id: pricingId,
-          },
-        },
-      },
-    })
+  async getAll(enterpriseId: string) {
+    const enterprise = await this.enterprise.findFirst({
+      where: { id: enterpriseId, available: true },
+      include: { pricingPlan: true },
+    });
+    if (!enterprise) {
+      throw new Error(`Enterprise with id ${enterpriseId} not found`);
+    }
+
+    const pricingPlan = await this.pricingPlan.findUnique({
+      where: { id: enterprise.pricingPlanId, available: true },
+      include: { flows: true },
+    });
+
+    if (!pricingPlan) {
+      throw new Error(`Enterprise with id ${enterpriseId} has no pricing plan`);
+    }
+
+    const flows = await this.flow.findMany({
+      where: { available: true },
+      include: { Message: true },
+    });
+
+    if (flows.length === 0) {
+      return [];
+    }
+
+    const allMessageWithSub =
+      await this.messageService.findMessagesWithMessages(enterprise.id);
+
+    for (const flow of flows) {
+      flow.Message = allMessageWithSub
+        .filter((message) => message.flow && message.flow.id === flow.id)
+        .map((message) => {
+          const { flow, ...messageWithoutFlow } = message;
+          return messageWithoutFlow;
+        });
+    }
+
+    return flows;
   }
 
-  async getFlowsByPricingIdAndEnterpriseId(pricingId: string, enterpriseId: string) {
-    return this.flow.findMany({
-      where: {
-        PricingPlan: {
-          some: {
-            id: pricingId,
-            enterprises: {
-              some: {
-                id: enterpriseId,
-              },
-            },
-          },
-        }
-      },
-    })
-  }
-
-  async remove(id: string) {
-    const flow = await this.flow.findFirst({ where: { id } });
+  async getOneWithMenuMessagesAndMessages(id: string, idEnterprise: string) {
+    const flow = await this.flow.findUnique({
+      where: { id: id, available: true },
+      include: { Message: true },
+    });
 
     if (!flow) {
       throw new Error(`Flow with id ${id} not found`);
     }
 
-    return this.flow.delete({ where: { id } });
+    const allMessageWithSub =
+      await this.messageService.getMessagesWithMenuMessages(idEnterprise);
+
+    flow.Message = allMessageWithSub
+      .filter((message) => message.flow && message.flow.id === flow.id)
+      .map((message) => {
+        const { flow, ...messageWithoutFlow } = message;
+        return messageWithoutFlow;
+      });
+    
+    return flow;
+  }
+
+  async getAllWithMenu(idEnterprise: string) {
+    const enterprise = await this.enterprise.findFirst({
+      where: { id: idEnterprise, available: true},
+      include: { pricingPlan: true },
+    });
+
+    if (!enterprise) {
+      throw new Error(`Enterprise with id ${idEnterprise} not found`);
+    }
+
+    const enterprisePlan = this.pricingPlan.findFirst({where: {id: enterprise.pricingPlanId, available: true}});
+
+    if (!enterprisePlan) {
+      throw new Error(`Enterprise with id ${idEnterprise} has no pricing plan`);
+    }
+
+    const flows = await this.flow.findMany({
+      where: { available: true },
+      include: { Message: true },
+    });
+
+    if (flows.length === 0) {
+      return [];
+    }
+
+    const allMessageWithSubMessages = await this.messageService.getMessagesWithMenuMessages(enterprise.id);
+
+    for (const flow of flows) {
+      flow.Message = allMessageWithSubMessages
+        .filter((message) => message.flow && message.flow.id === flow.id)
+        .map((message) => {
+          const { flow, ...messageWithoutFlow } = message;
+          return messageWithoutFlow;
+      });
+    }
+
+    return flows;
+  }
+
+  async softDelete(id: string) {
+    const flow = await this.flow.findUnique({ where: { id, available: true}, include: {Message: true} });
+
+    if (!flow) {
+      throw new Error(`Flow with id ${id} not found`);
+    }
+
+    const message = await this.flow.update({
+      where: { id },
+      data: { available: false },
+      include: { Message: true },
+    })
+
+    return message;
   }
 
   async findAllFlowsWithMessage(idEnterprise: string) {
-    const enterprise = await this.enterprise.findFirst({ where: { id: idEnterprise }, include: {pricingPlan: true}});
+    const enterprise = await this.enterprise.findFirst({
+      where: { id: idEnterprise },
+      include: { pricingPlan: true },
+    });
     if (!enterprise) {
       throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
@@ -139,19 +253,20 @@ export class FlowService extends PrismaClient implements OnModuleInit {
               },
             },
           },
-        }
+        },
       },
       include: {
         Message: true,
-      }
-    })
+      },
+    });
 
-    for(const flow of flows) {
-      flow.Message = await this.message.findMany({where: {flowId: flow.id, enterpriseId: enterprise.id}});
+    for (const flow of flows) {
+      flow.Message = await this.messageService.findAllMainMessagesWithIdFlow(
+        idEnterprise,
+        flow.id,
+      );
     }
 
     return flows;
-
   }
-  
 }

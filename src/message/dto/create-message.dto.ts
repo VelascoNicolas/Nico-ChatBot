@@ -25,19 +25,19 @@ export class CreateMessageDto {
     @IsEnum(TypeMessageList, {
         message: `valid types are: ${TypeMessageList}`
     })
-    TypeMessage: TypeMessage;
+    typeMessage: TypeMessage;
 
     @IsBoolean()
     @IsNotEmpty()
     showName: boolean;
 
-    @IsString()
     @IsOptional()
-    enterpriseId: string;
+    enterpriseId?: string;
 
     @IsString()
     @IsNotEmpty()
     flowId: string;
 
-    parentMessageId: string;
+    @IsOptional()
+    parentMessageId?: string;
 }

@@ -13,13 +13,9 @@ export class CreateFlowDto {
     @IsNotEmpty()
     description: string;
 
-    @IsBoolean()
-    @IsNotEmpty()
-    isDeleted: boolean;
-
     @IsArray()
     @ArrayMinSize(1)
     @ValidateNested({ each: true })
     @Type( () => UpdatePricingPlanDto)
-    pricingPlans: UpdatePricingPlanDto[];
+    PricingPlan: UpdatePricingPlanDto[];
 }

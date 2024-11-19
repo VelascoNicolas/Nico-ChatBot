@@ -30,7 +30,7 @@ model Profile {
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
-  available  Boolean? @default(true)
+  available  Boolean @default(true)
 
   email String  @unique
   phone String
@@ -48,7 +48,7 @@ model Client {
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
-  available  Boolean? @default(true)
+  available  Boolean @default(true)
 
   username        String
   phone           String
@@ -62,7 +62,7 @@ model Enterprise {
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
-  available  Boolean? @default(true)
+  available  Boolean @default(true)
 
   name            String
   phone           String
@@ -83,11 +83,10 @@ model Flow {
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
-  available  Boolean? @default(true)
+  available  Boolean @default(true)
 
   name            String
   description     String
-  isDeleted       Boolean
 
   Message         Message[]
 
@@ -99,7 +98,7 @@ model Message {
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
-  available  Boolean? @default(true)
+  available  Boolean @default(true)
 
   numOrder        Int
   name            String
@@ -125,7 +124,7 @@ model PricingPlan {
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
-  available  Boolean? @default(true)
+  available  Boolean @default(true)
 
   name            String
   description     String

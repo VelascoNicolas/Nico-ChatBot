@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { PrismaClient } from '@prisma/client';
@@ -52,7 +52,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
         name: messageDto.name,
         body: messageDto.body,
         option: messageDto.option,
-        typeMessage: messageDto.TypeMessage,
+        typeMessage: messageDto.typeMessage,
         showName: messageDto.showName,
         enterpriseId: enterprise.id,
         flowId: flow.id,
@@ -100,7 +100,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
     const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise, available: true}, include: {enterprise: true}});
 
     if (!message) {
-      throw new Error(`Message with id ${id} not found`);
+      throw new HttpException(`Message with id ${id} not found`, 404);
     }
 
     return message;
@@ -152,7 +152,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
     return messages;
   }
 
-  async getMessagesWithMessages(idEnterprise: string) {
+  async findMessagesWithMessages(idEnterprise: string) {
 
     const messages = await this.message.findMany({
       where: {
@@ -180,6 +180,12 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
     if(!messages || messages.length <= 0) {
       throw new Error(`No messages found for enterprise ${idEnterprise}`);
+    }
+
+    for(const message of messages) {
+      (message as any).childMessages.forEach((messagito: any) => {
+        messagito.childMessages = this.findChildMessages(message.id)
+      });
     }
 
     return messages;
@@ -230,8 +236,10 @@ export class MessageService extends PrismaClient implements OnModuleInit{
         flow: true,
         childMessages: {
           include: {
+            flow: true,
             childMessages: {
               include: {
+                flow: true,
                 childMessages: true,
               },
             },
@@ -245,6 +253,12 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
     if(!messages || messages.length <= 0) {
       throw new Error(`No messages found for enterprise ${idEnterprise}`);
+    }
+    
+    for(const message of messages) {
+      (message as any).childMessages.forEach((messagito: any) => {
+        messagito.childMessages = this.findChildMessages(message.id)
+      });
     }
 
     return messages;
@@ -336,8 +350,26 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async findAllMainMessagesWithIdFlow(idEnterprise: string, idFlow: string) {
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, parentMessageId: null, flowId: idFlow, available: true}, include: {enterprise: true}, orderBy: { numOrder: 'asc' }});
+    const messages = await this.message.findMany({
+      where: {enterpriseId: idEnterprise, flowId: idFlow, parentMessageId: null},
+      include: {
+        flow: true,
+        childMessages: {
+          include: {
+            childMessages: {
+              include: {
+                childMessages: true,
+              },
+            },
+          },
+        },
+      }
+    })
   
+    if(messages.length <= 0) {
+      throw new Error(`No messages found for enterprise ${idEnterprise} and flow ${idFlow}`);
+    }
+
     for(const message of messages) {
       (message as any).childMessages.forEach((messagito: any) => {
         messagito.childMessages = this.findChildMessages(message.id)
