@@ -4,13 +4,16 @@ import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { Request } from 'express';
 import { AuthGuard } from '../auth/guards/auth.guard';
+import { ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 
-@UseGuards(AuthGuard)
+@ApiTags('Client')
 @Controller('client')
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
+  @UseGuards(AuthGuard)
   @Get()
+  @ApiBearerAuth('bearerAuth')
   async getAllEntitiesForAEnterprise(@Req() req: Request) {
     try {
       const profileId = req['profile'].sub;
@@ -20,7 +23,9 @@ export class ClientController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get('deleted')
+  @ApiBearerAuth('bearerAuth')
   async getAllDeletedEntitiesForAEnterprise(@Req() req: Request) {
     try {
       const profileId = req['profile'].sub;
@@ -30,7 +35,9 @@ export class ClientController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get(':idClient')
+  @ApiBearerAuth('bearerAuth')
   async getByIdEntityForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
     try {
       const profileId = req['profile'].sub;
@@ -40,7 +47,19 @@ export class ClientController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Post()
+  @ApiBody({
+    type: CreateClientDto,
+  examples: {
+    example: {
+      value: {
+        username: "Client name",
+        phone: "26121164"
+      }
+    }
+  }})
+  @ApiBearerAuth('bearerAuth')
   async createEntityForAEnterprise(@Req() req: Request, @Body() data: CreateClientDto) {
     try {
       const profileId = req['profile'].sub;
@@ -50,7 +69,19 @@ export class ClientController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Put(':idClient')
+  @ApiBody({
+    type: CreateClientDto,
+  examples: {
+    example: {
+      value: {
+        username: "Client name",
+        phone: "26121164"
+      }
+    }
+  }})
+  @ApiBearerAuth('bearerAuth')
   async updateEntityForAEnterprise(
     @Req() req: Request,
     @Param('idClient') idClient: string,
@@ -64,17 +95,21 @@ export class ClientController {
     }
   }
 
-  @Delete(':idClient')
-  async deleteEntityForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
-    try {
-      const profileId = req['profile'].sub;
-      return this.clientService.deleteEntityForAEnterprise(profileId, idClient);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
-  }
+  // @UseGuards(AuthGuard)
+  // @Delete(':idClient')
+  // @ApiBearerAuth('bearerAuth')
+  // async deleteEntityForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
+  //   try {
+  //     const profileId = req['profile'].sub;
+  //     return this.clientService.deleteEntityForAEnterprise(profileId, idClient);
+  //   } catch (error) {
+  //     throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+  //   }
+  // }
 
+  @UseGuards(AuthGuard)
   @Delete('softdelete/:idClient')
+  @ApiBearerAuth('bearerAuth')
   async logicDeleteForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
     try {
       const profileId = req['profile'].sub;
@@ -84,7 +119,9 @@ export class ClientController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Post('restore/:idClient')
+  @ApiBearerAuth('bearerAuth')
   async restoreLogicDeletedForAEnterprise(@Req() req: Request, @Param('idClient') idClient: string) {
     try {
       const profileId = req['profile'].sub;

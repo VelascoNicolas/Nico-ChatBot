@@ -1,14 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { EnterpriseService } from './enterprise.service';
 import { CreateEnterpriseDto } from './dto/create-enterprise.dto';
 import { UpdateEnterpriseDto } from './dto/update-enterprise.dto';
 import { ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
+@ApiTags('Enterprise')
 @Controller('enterprise')
 export class EnterpriseController {
   constructor(private readonly enterpriseService: EnterpriseService) {}
 
-  @ApiTags('Enterprise')
+  @UseGuards(AuthGuard)
   @ApiBearerAuth('bearerAuth')
   @Get(':id')
   async getOne(@Param('id') id: string) {
@@ -19,7 +21,7 @@ export class EnterpriseController {
     }
   }
 
-  @ApiTags('Enterprise')
+  @UseGuards(AuthGuard)
   @ApiBearerAuth('bearerAuth')
   @Get()
   async getAll() {
@@ -30,8 +32,8 @@ export class EnterpriseController {
     }    
   }
   
+  @UseGuards(AuthGuard)
   @Post()
-  @ApiTags('Enterprise')
   @ApiBody({
     type: CreateEnterpriseDto,
   examples: {
@@ -52,9 +54,9 @@ export class EnterpriseController {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-
+  
+  @UseGuards(AuthGuard)
   @Patch(':id')
-  @ApiTags('Enterprise')
   @ApiBody({
     type: CreateEnterpriseDto,
     examples: {
@@ -67,7 +69,7 @@ export class EnterpriseController {
         }
      }
     }
-  })
+  })  
   @ApiBearerAuth('bearerAuth')
   async update(@Param('id') id: string, @Body() updateEnterpriseDto: UpdateEnterpriseDto) {
     try {
@@ -77,8 +79,8 @@ export class EnterpriseController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  @ApiTags('Enterprise')
   @ApiBearerAuth('bearerAuth')
   async softDelete(@Param('id') id: string) {
     try {
@@ -88,8 +90,8 @@ export class EnterpriseController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Patch('recover/:id')
-  @ApiTags('Enterprise')
   @ApiBearerAuth('bearerAuth')
   async recover(@Param('id') id: string) {
     try {
@@ -99,8 +101,8 @@ export class EnterpriseController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get('/pricingplan/:id')
-  @ApiTags('Enterprise')
   @ApiBearerAuth('bearerAuth')
   async getEnterpriseWithPricingPlan(@Param('id') id: string) {
     try {

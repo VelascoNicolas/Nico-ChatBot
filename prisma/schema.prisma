@@ -27,10 +27,10 @@ enum TypeMessage {
 
 model Profile {
   id         String   @id @default(uuid())
-  deletedAt  DateTime @default("9999-12-12T00:00:00.000Z")
-  createdAt  DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  available       Boolean @default(true)
+  deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+  available  Boolean @default(true)
 
   email String  @unique
   phone String
@@ -44,11 +44,11 @@ model Profile {
 }
 
 model Client {
-  id              String   @id @default(uuid())
-  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  available       Boolean @default(true)
+  id         String   @id @default(uuid())
+  deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+  available  Boolean @default(true)
 
   username        String
   phone           String
@@ -58,11 +58,11 @@ model Client {
 }
 
 model Enterprise {
-  id              String   @id @default(uuid())
-  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  available       Boolean @default(true)
+  id         String   @id @default(uuid())
+  deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+  available  Boolean @default(true)
 
   name            String
   phone           String
@@ -79,15 +79,14 @@ model Enterprise {
 }
 
 model Flow {
-  id              String   @id @default(uuid())
-  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  available       Boolean @default(true)
+  id         String   @id @default(uuid())
+  deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+  available  Boolean @default(true)
 
   name            String
   description     String
-  isDeleted       Boolean
 
   Message         Message[]
 
@@ -95,11 +94,11 @@ model Flow {
 }
 
 model Message {
-  id              String   @id @default(uuid())
-  deletedAt       DateTime @default("9999-12-12T00:00:00.000Z")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  available       Boolean @default(true)
+  id         String   @id @default(uuid())
+  deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+  available  Boolean @default(true)
 
   numOrder        Int
   name            String
@@ -121,11 +120,11 @@ model Message {
 }
 
 model PricingPlan {
-  id              String   @id @default(uuid())
-  deletedAt       DateTime? @default("9999-12-12T00:00:00.000Z")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  available       Boolean @default(true)
+  id         String   @id @default(uuid())
+  deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+  available  Boolean @default(true)
 
   name            String
   description     String

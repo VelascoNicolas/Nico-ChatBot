@@ -1,6 +1,7 @@
 import { Option, TypeMessage } from "@prisma/client";
 import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { OptionList } from "../enum/option.enum";
+import { TypeMessageList } from "../enum/typeMessage.enum";
 
 export class CreateMessageDto {
 
@@ -21,24 +22,22 @@ export class CreateMessageDto {
     })
     option: Option;
 
-    @IsEnum(TypeMessage, {
-        message: `valid types are: ${TypeMessage}`
+    @IsEnum(TypeMessageList, {
+        message: `valid types are: ${TypeMessageList}`
     })
-    TypeMessage: TypeMessage;
+    typeMessage: TypeMessage;
 
     @IsBoolean()
     @IsNotEmpty()
     showName: boolean;
 
-    @IsString()
     @IsOptional()
-    enterpriseId: string;
+    enterpriseId?: string;
 
     @IsString()
     @IsNotEmpty()
     flowId: string;
 
-    @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     parentMessageId?: string;
 }

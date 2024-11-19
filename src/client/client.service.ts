@@ -27,7 +27,6 @@ export class ClientService extends PrismaClient implements OnModuleInit {
       const enterpriseId = await this.getEnterpriseIdFromToken(profileId);
       return this.client.findMany({
         where: { enterpriseId, available: true, deletedAt: { gte: new Date() } },
-        include: { enterprise: true },
       });
     } catch (error) {
       throw new Error(error);
@@ -101,26 +100,26 @@ export class ClientService extends PrismaClient implements OnModuleInit {
     }
   }
 
-  async deleteEntityForAEnterprise(profileId: string, idClient: string): Promise<{ message: string }> {
-    try {
-      const enterpriseId = await this.getEnterpriseIdFromToken(profileId);
-      const client = await this.client.findFirst({ where: { id: idClient, enterpriseId } });
+  // async deleteEntityForAEnterprise(profileId: string, idClient: string): Promise<{ message: string }> {
+  //   try {
+  //     const enterpriseId = await this.getEnterpriseIdFromToken(profileId);
+  //     const client = await this.client.findFirst({ where: { id: idClient, enterpriseId } });
   
-      if (!client) {
-        throw new NotFoundException('Client not found');
-      }
+  //     if (!client) {
+  //       throw new NotFoundException('Client not found');
+  //     }
   
-      if (client.enterpriseId !== enterpriseId) {
-        throw new ForbiddenException('Permission denied');
-      }
+  //     if (client.enterpriseId !== enterpriseId) {
+  //       throw new ForbiddenException('Permission denied');
+  //     }
   
-      await this.client.delete({ where: { id: idClient } });
+  //     await this.client.delete({ where: { id: idClient } });
   
-      return { message: `Client with ID ${idClient} has been permanently deleted.` };
-    } catch (error) {
-      throw new Error(error);
-    }
-  }
+  //     return { message: `Client with ID ${idClient} has been permanently deleted.` };
+  //   } catch (error) {
+  //     throw new Error(error);
+  //   }
+  // }
 
   async logicDeleteForAEnterprise(profileId: string, idClient: string): Promise<{ message: string }> {
     try {

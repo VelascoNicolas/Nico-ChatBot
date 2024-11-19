@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateClientDto {
 
@@ -10,7 +10,4 @@ export class CreateClientDto {
     @IsNotEmpty()
     phone: string;
 
-    @IsString()
-    @IsNotEmpty()
-    enterpriseId: string; 
 }
