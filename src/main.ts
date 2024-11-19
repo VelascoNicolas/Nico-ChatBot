@@ -14,6 +14,13 @@ async function bootstrap() {
     })
   )
 
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    credentials: true, 
+  });
+
   const config = new DocumentBuilder()
   .setTitle('API DANIELBOT')
   .setDescription('[ Base URL: nico-chat-bot.vercel.app ]')
