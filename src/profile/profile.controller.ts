@@ -89,4 +89,11 @@ export class ProfileController {
   async updateProfile(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {
     return await this.profileService.updateProfile({id: id, ...updateProfileDto});
   }
+
+  @UseGuards(AuthGuard)
+  @Get('getQRUrl')
+  @ApiBearerAuth('bearerAuth')
+  async getQRUrl() {
+    return await this.profileService.getQrUrl();
+  }
 }

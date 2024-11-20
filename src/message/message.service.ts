@@ -15,7 +15,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async createMessage(messageDto: CreateMessageDto) {
-    const enterprise = await this.enterprise.findUnique({where: {id: messageDto.enterpriseId, available: true}, include: {pricingPlan: true}});
+    const enterprise = await this.enterprises.findUnique({where: {id: messageDto.enterpriseId, available: true}, include: {pricingPlan: true}});
 
     if (!enterprise) {
       throw new Error(`Enterprise with id ${messageDto.enterpriseId} not found`);
@@ -25,7 +25,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
       throw new Error(`Enterprise with id ${messageDto.enterpriseId} has no pricing plan`);
     }
 
-    const flow = await this.flow.findUnique({where: {id: messageDto.flowId, available: true}, include: {PricingPlan: true}});
+    const flow = await this.flows.findUnique({where: {id: messageDto.flowId, available: true}, include: {PricingPlan: true}});
 
     if (!flow) {
       throw new Error(`Flow with id ${messageDto.flowId} not found`);
@@ -46,7 +46,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
       throw new Error(`Flow with id ${messageDto.flowId} does not belong to the same pricing plan as the enterprise`);
     }
 
-    const message = await this.message.create({      
+    const message = await this.messages.create({      
       data: {
         numOrder: messageDto.numOrder,
         name: messageDto.name,
@@ -64,11 +64,11 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async findAllMessages(idEnterprise: string) {
-    return await this.message.findMany({where: {enterpriseId: idEnterprise, available: true}, include: {enterprise: true, flow: true}});
+    return await this.messages.findMany({where: {enterpriseId: idEnterprise, available: true}, include: {enterprise: true, flow: true}});
   }
 
   async findAllMainMessages(idEnterprise: string) {
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, parentMessageId: null, available: true}, include: {enterprise: true, childMessages: true}, orderBy: { numOrder: 'asc' }});
+    const messages = await this.messages.findMany({where: {enterpriseId: idEnterprise, parentMessageId: null, available: true}, include: {enterprise: true, childMessages: true}, orderBy: { numOrder: 'asc' }});
   
     for(const message of messages) {
       (message as any).childMessages.forEach((messagito: any) => {
@@ -81,13 +81,13 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async getAllDeletedMessages(idEnterprise: string) {
-    const enterprise = await this.enterprise.findUnique({where: {id: idEnterprise, available: true}});
+    const enterprise = await this.enterprises.findUnique({where: {id: idEnterprise, available: true}});
 
     if (!enterprise) {
       throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
 
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, available: false}, include: {flow: true, enterprise: true}});
+    const messages = await this.messages.findMany({where: {enterpriseId: idEnterprise, available: false}, include: {flow: true, enterprise: true}});
   
     if(messages.length <= 0) {
       throw new Error(`No messages found for enterprise ${idEnterprise}`);
@@ -97,7 +97,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async findMessageById(id: string, idEnterprise: string) {
-    const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise, available: true}, include: {enterprise: true}});
+    const message = await this.messages.findUnique({where: {id, enterpriseId: idEnterprise, available: true}, include: {enterprise: true}});
 
     if (!message) {
       throw new HttpException(`Message with id ${id} not found`, 404);
@@ -108,19 +108,19 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
   async findAllMessagesByNumOrder(idEnterprise: string, idFlow: string, numOrder: number) {
 
-    const enterprise = await this.enterprise.findUnique({where: {id: idEnterprise, available: true}});
+    const enterprise = await this.enterprises.findUnique({where: {id: idEnterprise, available: true}});
 
     if (!enterprise) {
       throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
 
-    const flow = await this.flow.findUnique({where: {id: idFlow, available: true}});
+    const flow = await this.flows.findUnique({where: {id: idFlow, available: true}});
 
     if (!flow) {
       throw new Error(`Flow with id ${idFlow} not found`);
     }
 
-    const messages = await this.message.findMany({where: {enterpriseId: enterprise.id, numOrder: numOrder, flowId: flow.id, available: true}});
+    const messages = await this.messages.findMany({where: {enterpriseId: enterprise.id, numOrder: numOrder, flowId: flow.id, available: true}});
 
     if(messages.length <= 0) {
       throw new Error(`No messages found for numOrder ${numOrder} in flow ${idFlow}`);
@@ -131,19 +131,19 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
   async findAllMessagesByNumOrderAndFlowByName(idEnterprise: string, nameFlow: string, numOrder: number) {
     
-    const enterprise = await this.enterprise.findUnique({where: {id: idEnterprise, available: true}});
+    const enterprise = await this.enterprises.findUnique({where: {id: idEnterprise, available: true}});
 
     if (!enterprise) {
       throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
     
-    const flow = await this.flow.findFirst({where: {name: nameFlow}})
+    const flow = await this.flows.findFirst({where: {name: nameFlow}})
 
     if (!flow) {
       throw new Error(`Flow with name ${nameFlow} not found`);
     }
 
-    const messages = await this.message.findMany({where: {enterpriseId: idEnterprise, numOrder: numOrder, flowId: flow.id, available: true}});
+    const messages = await this.messages.findMany({where: {enterpriseId: idEnterprise, numOrder: numOrder, flowId: flow.id, available: true}});
 
     if(messages.length <= 0) {
       throw new Error(`No messages found for numOrder ${numOrder} in flow ${nameFlow}`);
@@ -154,7 +154,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
   async findMessagesWithMessages(idEnterprise: string) {
 
-    const messages = await this.message.findMany({
+    const messages = await this.messages.findMany({
       where: {
         enterprise: {
           id: idEnterprise,
@@ -192,7 +192,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async getOneWithMessages(id: string, idEnterprise: string) {
-    const message = await this.message.findFirst({
+    const message = await this.messages.findFirst({
       where: {
         enterprise: {
           id: idEnterprise,
@@ -224,7 +224,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async getMessagesWithMenuMessages(idEnterprise: string) {
-    const messages = await this.message.findMany({
+    const messages = await this.messages.findMany({
       where: {
         enterprise: {
           id: idEnterprise,
@@ -265,7 +265,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async getOneWithMenuMessages(id: string, idEnterprise: string) {
-    const message = await this.message.findFirst({
+    const message = await this.messages.findFirst({
       where: {
         enterprise: {
           id: idEnterprise,
@@ -299,25 +299,25 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
   async updateMessage( message: UpdateMessageDto) {
     
-    const enterprise = await this.enterprise.findUnique({where: {id: message.enterpriseId, available: true}});
+    const enterprise = await this.enterprises.findUnique({where: {id: message.enterpriseId, available: true}});
 
     if (!enterprise) {
       throw new Error(`Enterprise with id ${message.enterpriseId} not found`);
     }
 
-    const flow = await this.flow.findUnique({where: {id: message.flowId, available: true}});
+    const flow = await this.flows.findUnique({where: {id: message.flowId, available: true}});
 
     if (!flow) {
       throw new Error(`Flow with id ${message.flowId} not found`);
     }
 
-    const messageToUpdate = await this.message.findUnique({where: {id: message.id, enterpriseId: enterprise.id, flowId: flow.id, available: true}});
+    const messageToUpdate = await this.messages.findUnique({where: {id: message.id, enterpriseId: enterprise.id, flowId: flow.id, available: true}});
 
     if (!messageToUpdate) {
       throw new Error(`Message with id ${message.id} not found`);
     }
 
-    const updated = await this.message.update({
+    const updated = await this.messages.update({
       where: {id: message.id},
       data: message
     })
@@ -326,31 +326,31 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async deleteMessageByEnterprise(id: string, idEnterprise: string) {
-    const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise, available: true}});
+    const message = await this.messages.findUnique({where: {id, enterpriseId: idEnterprise, available: true}});
 
     if (!message) {
       throw new Error(`Message with id ${id} not found`);
     }   
    
-    const deleted = await this.message.update({where: {id, enterpriseId: idEnterprise}, data: {available: false}});
+    const deleted = await this.messages.update({where: {id, enterpriseId: idEnterprise}, data: {available: false}});
 
     return 'message deleted successfully';
   }
 
   async restoreDeletedMessage(id: string, idEnterprise: string) {
-    const message = await this.message.findUnique({where: {id, enterpriseId: idEnterprise, available: false}});
+    const message = await this.messages.findUnique({where: {id, enterpriseId: idEnterprise, available: false}});
 
     if (!message) {
       throw new Error(`Message with id ${id} not eliminated or not exist`);
     }
 
-    const restored = await this.message.update({where: {id, enterpriseId: idEnterprise}, data: {available: true}});
+    const restored = await this.messages.update({where: {id, enterpriseId: idEnterprise}, data: {available: true}});
 
     return restored;
   }
 
   async findAllMainMessagesWithIdFlow(idEnterprise: string, idFlow: string) {
-    const messages = await this.message.findMany({
+    const messages = await this.messages.findMany({
       where: {enterpriseId: idEnterprise, flowId: idFlow, parentMessageId: null},
       include: {
         flow: true,
@@ -381,7 +381,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
 
   //Este metodo no necesita tener endpoint
   async findChildMessages(parentMessageId: string) {
-    const childMessages = await this.message.findMany({
+    const childMessages = await this.messages.findMany({
       where: {parentMessageId: parentMessageId, available: true},
       orderBy: {numOrder: 'asc'},
       include: {childMessages: true}

@@ -15,7 +15,7 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
   }
   
   async getEnterpriseWithPricingPlan(enterpriseId: string) {
-    return await this.enterprise.findUnique({
+    return await this.enterprises.findUnique({
       where: { id: enterpriseId, available: true },
       include: { pricingPlan: true }
     });
@@ -25,7 +25,7 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
 
     const {id, ...data} = enterpriseDto;
 
-    const pricingPlan = await this.pricingPlan.findUnique({
+    const pricingPlan = await this.pricing_plans.findUnique({
       where: { id: enterpriseDto.pricingPlanId,  available: true }
     });
 
@@ -33,13 +33,13 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
       throw new Error('Pricing plan not found');
     }
 
-    const enterprise = this.enterprise.findFirst({where: { id: enterpriseDto.id,  available: true }});
+    const enterprise = this.enterprises.findFirst({where: { id: enterpriseDto.id,  available: true }});
 
     if (!enterprise) {
       throw new Error('Enterprise not found');
     }
 
-    return await this.enterprise.update({
+    return await this.enterprises.update({
       where: {id: (await enterprise).id},
       data: data
     })
@@ -47,15 +47,15 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
   }
 
   create(createEnterpriseDto: CreateEnterpriseDto) {
-    return this.enterprise.create({data: createEnterpriseDto});
+    return this.enterprises.create({data: createEnterpriseDto});
   }
 
   findAll() {
-    return this.enterprise.findMany({where: {available: true}});
+    return this.enterprises.findMany({where: {available: true}});
   }
 
   findOne(id: string) {
-    return this.enterprise.findFirst({where: {id: id, available: true}});
+    return this.enterprises.findFirst({where: {id: id, available: true}});
   }
 
   remove(id: string) {
@@ -64,6 +64,6 @@ export class EnterpriseService extends PrismaClient implements OnModuleInit{
       throw new Error('Enterprise not found');
     }
 
-    return this.enterprise.update({where: {id: id}, data: {deletedAt: new Date(Date.now()), available: false}});
+    return this.enterprises.update({where: {id: id}, data: {deletedAt: new Date(Date.now()), available: false}});
   }
 }

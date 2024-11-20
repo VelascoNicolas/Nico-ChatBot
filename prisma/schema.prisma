@@ -25,7 +25,7 @@ enum TypeMessage {
   DEFAULT
 }
 
-model Profile {
+model profiles {
   id         String   @id @default(uuid())
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
@@ -39,11 +39,11 @@ model Profile {
 
   role Rol
 
-  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterprise enterprises @relation(fields: [enterpriseId], references: [id])
   enterpriseId String
 }
 
-model Client {
+model clients {
   id         String   @id @default(uuid())
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
@@ -53,11 +53,11 @@ model Client {
   username        String
   phone           String
 
-  enterprise      Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterprise      enterprises @relation(fields: [enterpriseId], references: [id])
   enterpriseId    String
 }
 
-model Enterprise {
+model enterprises {
   id         String   @id @default(uuid())
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
@@ -68,17 +68,17 @@ model Enterprise {
   phone           String
   connected       Boolean
 
-  profiles        Profile[]
+  profiles        profiles[]
 
-  clients         Client[]
+  clients         clients[]
 
-  Message         Message[]
+  Message         messages[]
 
-  pricingPlan     PricingPlan  @relation(fields: [pricingPlanId], references: [id])
+  pricingPlan     pricing_plans  @relation(fields: [pricingPlanId], references: [id])
   pricingPlanId   String
 }
 
-model Flow {
+model flows {
   id         String   @id @default(uuid())
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
@@ -88,12 +88,12 @@ model Flow {
   name            String
   description     String
 
-  Message         Message[]
+  Message         messages[]
 
-  PricingPlan     PricingPlan[]
+  PricingPlan     pricing_plans[]
 }
 
-model Message {
+model messages {
   id         String   @id @default(uuid())
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
@@ -107,19 +107,19 @@ model Message {
   typeMessage     TypeMessage
   showName        Boolean
 
-  enterprise      Enterprise @relation(fields: [enterpriseId], references: [id])
+  enterprise      enterprises @relation(fields: [enterpriseId], references: [id])
   enterpriseId    String
 
-  flow            Flow @relation(fields: [flowId], references: [id])
+  flow            flows @relation(fields: [flowId], references: [id])
   flowId          String
 
-  parentMessage   Message? @relation("ParentMessage", fields: [parentMessageId], references: [id])
+  parentMessage   messages? @relation("ParentMessage", fields: [parentMessageId], references: [id])
   parentMessageId String?
 
-  childMessages   Message[] @relation("ParentMessage")
+  childMessages   messages[] @relation("ParentMessage")
 }
 
-model PricingPlan {
+model pricing_plans {
   id         String   @id @default(uuid())
   deletedAt  DateTime? @default("9999-12-12T00:00:00.000Z")
   createdAt  DateTime? @default(now())
@@ -130,7 +130,7 @@ model PricingPlan {
   description     String
   price           Float
   
-  enterprises     Enterprise[]
+  enterprises     enterprises[]
 
-  flows           Flow[]
+  flows           flows[]
 }

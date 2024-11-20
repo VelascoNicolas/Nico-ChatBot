@@ -16,7 +16,7 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
 
   async create(createPricingPlanDto: CreatePricingPlanDto) {
     try {
-      return this.pricingPlan.create({
+      return this.pricing_plans.create({
         data: createPricingPlanDto,
       });
     } catch (error) {
@@ -26,7 +26,7 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
 
   async getAll() {
     try {
-      return this.pricingPlan.findMany({
+      return this.pricing_plans.findMany({
         where: { available: true, deletedAt: { gte: new Date() } },
       });
     } catch (error) {
@@ -36,7 +36,7 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
 
   async getOne(id: string) {
     try {
-      const pricingPlan = await this.pricingPlan.findUnique({
+      const pricingPlan = await this.pricing_plans.findUnique({
         where: { id },
       });
   
@@ -54,7 +54,7 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
     try {
       const existing = await this.getOne(id);
 
-      return this.pricingPlan.update({
+      return this.pricing_plans.update({
         where: { id: existing.id },
         data: updatePricingPlanDto,
       });
@@ -67,7 +67,7 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
     try {
       const existing = await this.getOne(id);
 
-      await this.pricingPlan.update({
+      await this.pricing_plans.update({
         where: { id: existing.id },
         data: { available: false, deletedAt: new Date() },
       });
@@ -79,7 +79,7 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
 
   async recover(id: string) {
     try {
-      const pricingPlan = await this.pricingPlan.findUnique({
+      const pricingPlan = await this.pricing_plans.findUnique({
         where: { id },
       });
   
@@ -87,7 +87,7 @@ export class PricingPlanService extends PrismaClient implements OnModuleInit{
         throw new NotFoundException('Pricing Plan not found or already active');
       }
   
-      return this.pricingPlan.update({
+      return this.pricing_plans.update({
         where: { id },
         data: { available: true, deletedAt: new Date('9999-12-12T00:00:00.000Z') },
       });

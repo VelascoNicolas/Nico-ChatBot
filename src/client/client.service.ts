@@ -15,7 +15,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
   }
 
   async getAllClientsForEnterprise(idEnterprise: string) {
-    const enterprise = await this.enterprise.findUnique({
+    const enterprise = await this.enterprises.findUnique({
       where: {
         id: idEnterprise,
         available: true,
@@ -26,7 +26,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Enterprise not found');
     }
 
-    const clients = await this.client.findMany({
+    const clients = await this.clients.findMany({
       where: {
         enterpriseId: enterprise.id,
         available: true,
@@ -42,7 +42,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
 
   async getClientById(id: string, idEnterprise: string) {
 
-    const enterprise = await this.enterprise.findUnique({
+    const enterprise = await this.enterprises.findUnique({
       where: {
         id: idEnterprise,
         available: true,
@@ -53,7 +53,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Enterprise not found');
     }
 
-    const client = await this.client.findUnique({
+    const client = await this.clients.findUnique({
       where: {
         id,
         enterpriseId: enterprise.id,
@@ -69,7 +69,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
   }
 
   async createClient(createClientDto: CreateClientDto) {
-    const enterprise = await this.enterprise.findUnique({
+    const enterprise = await this.enterprises.findUnique({
       where: {
         id: createClientDto.enterpriseId,
         available: true,
@@ -80,7 +80,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Enterprise not found');
     }
 
-    const client = await this.client.create({
+    const client = await this.clients.create({
       data: {
         username: createClientDto.username,
         phone: createClientDto.phone,
@@ -96,7 +96,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
   }
 
   async getAllDeletedClients(idEnterprise: string) {
-    const enterprise = await this.enterprise.findUnique({
+    const enterprise = await this.enterprises.findUnique({
       where: {
         id: idEnterprise,
         available: true,
@@ -107,7 +107,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Enterprise not found');
     }
 
-    const clients = await this.client.findMany({
+    const clients = await this.clients.findMany({
       where: {
         enterpriseId: enterprise.id,
         available: false,
@@ -123,7 +123,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
 
   async updateClient(id: string, updateClientDto: UpdateClientDto) {
     
-    const enterprise = await this.enterprise.findUnique({
+    const enterprise = await this.enterprises.findUnique({
       where: {
         id: updateClientDto.enterpriseId,
         available: true,
@@ -134,7 +134,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Enterprise not found');
     }
     
-    const client = await this.client.findUnique({
+    const client = await this.clients.findUnique({
       where: {
         id,
         enterpriseId: enterprise.id,
@@ -146,7 +146,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Client not found');
     }
 
-    const updatedClient = await this.client.update({
+    const updatedClient = await this.clients.update({
       where: {
         id,
       },
@@ -164,7 +164,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
   }
 
   async softDelete(id: string) {
-    const client = await this.client.findUnique({
+    const client = await this.clients.findUnique({
       where: {
         id,
         available: true,
@@ -175,7 +175,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Client not found');
     }
 
-    const deletedClient = await this.client.update({
+    const deletedClient = await this.clients.update({
       where: {
         id,
       },
@@ -191,7 +191,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
   }
 
   async restoreClient(id: string) {
-    const client = await this.client.findUnique({
+    const client = await this.clients.findUnique({
       where: {
         id,
         available: false,
@@ -202,7 +202,7 @@ export class ClientService extends PrismaClient implements OnModuleInit{
       throw new Error('Client not found');
     }
 
-    const restoredClient = await this.client.update({
+    const restoredClient = await this.clients.update({
       where: {
         id,
       },

@@ -16,7 +16,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async findFlowsWithEnterprise(idEnterprise: string) {
-    const enterprise = await this.enterprise.findFirst({
+    const enterprise = await this.enterprises.findFirst({
       where: { id: idEnterprise, available: true },
       include: { pricingPlan: true },
     });
@@ -24,7 +24,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
     if (!enterprise) {
       throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
-    const pricingPlan = await this.pricingPlan.findUnique({
+    const pricingPlan = await this.pricing_plans.findUnique({
       where: { id: enterprise.pricingPlanId },
       include: { flows: true },
     });
@@ -40,7 +40,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async findFlowsWithPricingPlanId(pricingPlanId: string) {
-    const pricingPlan = await this.pricingPlan.findUnique({
+    const pricingPlan = await this.pricing_plans.findUnique({
       where: { id: pricingPlanId, available: true},
       include: { flows: true },
     });
@@ -54,7 +54,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
 
   async create(createFlowDto: CreateFlowDto) {
     for (const flowDto of createFlowDto.PricingPlan) {
-      const pricingPlan = await this.pricingPlan.findUnique({
+      const pricingPlan = await this.pricing_plans.findUnique({
         where: { id: flowDto.id, available: true },
       });
       if (!pricingPlan) {
@@ -62,7 +62,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
       }
     }
 
-    const flow = await this.flow.create({
+    const flow = await this.flows.create({
       data: {
         ...createFlowDto,
         PricingPlan: {
@@ -76,7 +76,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async update(updateFlowDto: UpdateFlowDto) {
-    const flow = await this.flow.findUnique({
+    const flow = await this.flows.findUnique({
       where: { id: updateFlowDto.id, available: true},
       include: { PricingPlan: true },
     });
@@ -86,7 +86,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
     }
 
     for (const price of updateFlowDto.PricingPlan) {
-      const pricingPlan = await this.pricingPlan.findUnique({
+      const pricingPlan = await this.pricing_plans.findUnique({
         where: { id: price.id, available: true },
       });
       if (!pricingPlan) {
@@ -94,7 +94,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
       }
     }
 
-    return this.flow.update({
+    return this.flows.update({
       where: { id: updateFlowDto.id },
       data: {
         name: updateFlowDto.name,
@@ -108,7 +108,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async getAll(enterpriseId: string) {
-    const enterprise = await this.enterprise.findFirst({
+    const enterprise = await this.enterprises.findFirst({
       where: { id: enterpriseId, available: true },
       include: { pricingPlan: true },
     });
@@ -116,7 +116,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
       throw new Error(`Enterprise with id ${enterpriseId} not found`);
     }
 
-    const pricingPlan = await this.pricingPlan.findUnique({
+    const pricingPlan = await this.pricing_plans.findUnique({
       where: { id: enterprise.pricingPlanId, available: true },
       include: { flows: true },
     });
@@ -125,7 +125,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
       throw new Error(`Enterprise with id ${enterpriseId} has no pricing plan`);
     }
 
-    const flows = await this.flow.findMany({
+    const flows = await this.flows.findMany({
       where: { available: true },
       include: { Message: true },
     });
@@ -150,7 +150,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async getOneWithMenuMessagesAndMessages(id: string, idEnterprise: string) {
-    const flow = await this.flow.findUnique({
+    const flow = await this.flows.findUnique({
       where: { id: id, available: true },
       include: { Message: true },
     });
@@ -173,7 +173,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async getAllWithMenu(idEnterprise: string) {
-    const enterprise = await this.enterprise.findFirst({
+    const enterprise = await this.enterprises.findFirst({
       where: { id: idEnterprise, available: true},
       include: { pricingPlan: true },
     });
@@ -182,13 +182,13 @@ export class FlowService extends PrismaClient implements OnModuleInit {
       throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
 
-    const enterprisePlan = this.pricingPlan.findFirst({where: {id: enterprise.pricingPlanId, available: true}});
+    const enterprisePlan = this.pricing_plans.findFirst({where: {id: enterprise.pricingPlanId, available: true}});
 
     if (!enterprisePlan) {
       throw new Error(`Enterprise with id ${idEnterprise} has no pricing plan`);
     }
 
-    const flows = await this.flow.findMany({
+    const flows = await this.flows.findMany({
       where: { available: true },
       include: { Message: true },
     });
@@ -212,13 +212,13 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async softDelete(id: string) {
-    const flow = await this.flow.findUnique({ where: { id, available: true}, include: {Message: true} });
+    const flow = await this.flows.findUnique({ where: { id, available: true}, include: {Message: true} });
 
     if (!flow) {
       throw new Error(`Flow with id ${id} not found`);
     }
 
-    const message = await this.flow.update({
+    const message = await this.flows.update({
       where: { id },
       data: { available: false },
       include: { Message: true },
@@ -228,7 +228,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
   }
 
   async findAllFlowsWithMessage(idEnterprise: string) {
-    const enterprise = await this.enterprise.findFirst({
+    const enterprise = await this.enterprises.findFirst({
       where: { id: idEnterprise },
       include: { pricingPlan: true },
     });
@@ -242,7 +242,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
       throw new Error(`Enterprise with id ${idEnterprise} has no pricing plan`);
     }
 
-    const flows = await this.flow.findMany({
+    const flows = await this.flows.findMany({
       where: {
         PricingPlan: {
           some: {
