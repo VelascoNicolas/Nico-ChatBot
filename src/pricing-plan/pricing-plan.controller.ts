@@ -1,34 +1,100 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { PricingPlanService } from './pricing-plan.service';
 import { CreatePricingPlanDto } from './dto/create-pricing-plan.dto';
 import { UpdatePricingPlanDto } from './dto/update-pricing-plan.dto';
+import { ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
-@Controller('pricing-plan')
+@ApiTags('Pricing-Plan')
+@Controller('pricingplan')
 export class PricingPlanController {
   constructor(private readonly pricingPlanService: PricingPlanService) {}
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('bearerAuth')
   @Post()
-  create(@Body() createPricingPlanDto: CreatePricingPlanDto) {
-    return this.pricingPlanService.create(createPricingPlanDto);
+  @ApiBody({
+    type: CreatePricingPlanDto,
+  examples: {
+    example: {
+      value: {
+        name: "PricingPlan name",
+        description: "Description PricingPlan",
+        price: 1500
+      }
+    }
+  }})
+  async create(@Body() createPricingPlanDto: CreatePricingPlanDto) {
+    try {
+      return await this.pricingPlanService.create(createPricingPlanDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('bearerAuth')
   @Get()
-  findAll() {
-    return this.pricingPlanService.findAll();
+  async getAll() {
+    try {
+      return await this.pricingPlanService.getAll();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('bearerAuth')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pricingPlanService.findOne(+id);
+  async getOne(@Param('id') id: string) {
+    try {
+      return await this.pricingPlanService.getOne(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('bearerAuth')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePricingPlanDto: UpdatePricingPlanDto) {
-    return this.pricingPlanService.update(+id, updatePricingPlanDto);
+  @ApiBody({
+    type: CreatePricingPlanDto,
+  examples: {
+    example: {
+      value: {
+        name: "PricingPlan name",
+        description: "Description PricingPlan",
+        price: 1500
+      }
+    }
+  }})
+  async update(@Param('id') id: string, @Body() updatePricingPlanDto: UpdatePricingPlanDto) {
+    try {
+      return await this.pricingPlanService.update(id, updatePricingPlanDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('bearerAuth')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pricingPlanService.remove(+id);
+  async softDelete(@Param('id') id: string) {
+    try {
+      await this.pricingPlanService.softDelete(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('bearerAuth')
+  @Patch('/recover/:id')
+  async recover(@Param('id') id: string) {
+    try {
+      return await this.pricingPlanService.recover(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
   }
 }
