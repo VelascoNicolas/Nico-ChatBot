@@ -73,9 +73,9 @@ export class MessageController {
   @UseGuards(AuthGuard)
   @Get('/flow/:flowId')
   @ApiBearerAuth('bearerAuth')
-  async findAllMessagesByFlow(@Query('flowId') idFlow: string, @Param('numOrder') numOrder: number, @Req() req) {
+  async findAllMessagesByFlow(@Param('flowId') idFlow: string, @Query('numOrder') numOrder: number, @Req() req) {
     const idEnterprise = await this.profileService.findEnterpriseByProfileId(req.profile.sub);
-    return this.messageService.findAllMessagesByNumOrderAndFlowByName(idEnterprise, idFlow, numOrder);
+    return this.messageService.findAllMessagesByNumOrder(idEnterprise, idFlow, numOrder);
   }
 
   @UseGuards(AuthGuard)

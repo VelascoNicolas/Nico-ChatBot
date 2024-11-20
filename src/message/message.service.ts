@@ -137,7 +137,7 @@ export class MessageService extends PrismaClient implements OnModuleInit{
       throw new Error(`Enterprise with id ${idEnterprise} not found`);
     }
     
-    const flow = await this.flow.findFirst({where: {name: nameFlow, available: true}});
+    const flow = await this.flow.findFirst({where: {name: nameFlow}})
 
     if (!flow) {
       throw new Error(`Flow with name ${nameFlow} not found`);
