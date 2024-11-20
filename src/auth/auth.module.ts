@@ -10,7 +10,7 @@ import { ProfileService } from '../profile/profile.service';
     JwtModule.register({
       global: true,
       secret: envs.secret,
-      signOptions: { expiresIn: '1200s' },
+      signOptions: { expiresIn: '300s' },
     }),
   ],
   controllers: [AuthController],
