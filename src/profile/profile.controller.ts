@@ -129,7 +129,7 @@ export class ProfileController {
         throw new HttpException('File not found', 400);
       }
 
-      const filePath = 'src/uploads/' + file.originalname;
+      const filePath = '../uploads/' + file.originalname;
       await fs.promises.writeFile(filePath, file.buffer);
 
       return {
