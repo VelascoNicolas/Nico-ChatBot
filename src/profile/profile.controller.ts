@@ -128,8 +128,8 @@ export class ProfileController {
         throw new HttpException('File not found', 400);
       }
 
-      const filePath = './uploads/' + file.originalname;
-      await fs.promises.writeFile(filePath, file.buffer);
+      //const filePath = './uploads/' + file.originalname;
+      //await fs.promises.writeFile(filePath, file.buffer);
 
       return {
         mensaje: 'Archivo subido exitosamente',
@@ -137,7 +137,7 @@ export class ProfileController {
           nombre: file.originalname,
           mimetype: file.mimetype,
           tamaño: file.size,
-          ruta: filePath,
+          ruta: 'filePath',
         },
       };
     } catch (error) {
