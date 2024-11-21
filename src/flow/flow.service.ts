@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateFlowDto } from './dto/create-flow.dto';
 import { UpdateFlowDto } from './dto/update-flow.dto';
 import { PrismaClient } from '@prisma/client';
@@ -58,7 +58,7 @@ export class FlowService extends PrismaClient implements OnModuleInit {
         where: { id: flowDto.id, available: true },
       });
       if (!pricingPlan) {
-        throw new Error(`Pricing plan with id ${flowDto.id} not found`);
+        throw new HttpException(`Pricing plan with id ${flowDto.id} not found`, 404);
       }
     }
 

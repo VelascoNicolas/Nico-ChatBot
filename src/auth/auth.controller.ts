@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Request, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Request, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/signUp.dto';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
@@ -28,6 +28,13 @@ export class AuthController {
     return await this.authService.signIn(signInDto.email, signInDto.pass);
   }
 
+  @Get('validateQR')
+  @ApiTags('Authenticated')
+  async getToken() {
+    return 'hola';
+  }
+  
+
   @ApiTags('Authenticated')
   @Post('authenticated')
   @ApiBearerAuth('bearerAuth')
@@ -37,7 +44,7 @@ export class AuthController {
       const tok = type === 'Bearer' ? token : undefined;
 
       await this.jwtService.verifyAsync(token);
-      return res.status(200).json({ isValid: true });
+      return res.status(200).json({ token: token });
 
     } catch (error) {
       return res.status(200).json({ isValid: false, message: error.message });

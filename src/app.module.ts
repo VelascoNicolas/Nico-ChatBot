@@ -6,9 +6,15 @@ import { FlowModule } from './flow/flow.module';
 import { MessageModule } from './message/message.module';
 import { PricingPlanModule } from './pricing-plan/pricing-plan.module';
 import { AuthModule } from './auth/auth.module';
+import { MulterModule } from '@nestjs/platform-express';
+
 
 @Module({
-  imports: [ProfileModule, ClientModule, EnterpriseModule, FlowModule, MessageModule, PricingPlanModule, AuthModule],
+  imports: [ProfileModule, ClientModule, EnterpriseModule, FlowModule, MessageModule, PricingPlanModule, AuthModule,
+    MulterModule.register({
+      dest: './uploads', // Specify the destination directory for uploaded files
+    }),
+  ],
   controllers: [],
   providers: [],
 })
