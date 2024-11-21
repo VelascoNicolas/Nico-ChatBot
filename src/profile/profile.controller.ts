@@ -6,7 +6,6 @@ import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { RoleDto } from './dto/update-role.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import path from 'path';
 import * as fs from 'fs';
 import { Express } from 'express';
 
@@ -129,7 +128,7 @@ export class ProfileController {
         throw new HttpException('File not found', 400);
       }
 
-      const filePath = 'dist/uploads/' + file.originalname;
+      const filePath = '../../uploads/' + file.originalname;
       await fs.promises.writeFile(filePath, file.buffer);
 
       return {
