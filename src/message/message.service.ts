@@ -153,12 +153,10 @@ export class MessageService extends PrismaClient implements OnModuleInit{
   }
 
   async findMessagesWithMessages(idEnterprise: string) {
-
+    
     const messages = await this.messages.findMany({
       where: {
-        enterprise: {
-          id: idEnterprise,
-        },
+        enterpriseId: idEnterprise,
         available: true,
       },
       include: {

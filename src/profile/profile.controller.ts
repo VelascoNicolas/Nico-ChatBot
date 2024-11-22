@@ -131,15 +131,7 @@ export class ProfileController {
       //const filePath = './uploads/' + file.originalname;
       //await fs.promises.writeFile(filePath, file.buffer);
 
-      return {
-        mensaje: 'Archivo subido exitosamente',
-        archivo: {
-          nombre: file.originalname,
-          mimetype: file.mimetype,
-          tamaño: file.size,
-          ruta: 'filePath',
-        },
-      };
+      return file;
     } catch (error) {
       throw new HttpException(error.message, 500);
     }
